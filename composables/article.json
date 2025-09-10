@@ -1,0 +1,16 @@
+[
+  {
+    "id": "art001",
+    "title": "How to Take Care of Your Health",
+    "summary": "Simple tips for everyday wellness.",
+    "image": "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
+    "date": "2025-09-01"
+  },
+  {
+    "id": "art002",
+    "title": "Understanding Common Medicines",
+    "summary": "A guide to over-the-counter drugs.",
+    "image": "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2",
+    "date": "2025-08-28"
+  }
+]

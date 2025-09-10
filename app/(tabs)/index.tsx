@@ -1,75 +1,123 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View, Text, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useRouter } from 'expo-router';
+import Item from '../../components/item';
+import ProfileBar from '../../components/ProfileBar';
+import { getNewsAdmin } from '../../composables/fetchAPI';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function HomeScreen() {
+  const router = useRouter();
+  const [articles, setArticles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const handleCreateNews = () => {
+    router.push({
+      pathname: '/AddEditNews',
+      params: { mode: 'add' },
+    });
+  };
+  useFocusEffect(
+    React.useCallback(() => {
+    const fetchNews = async () => {
+      setLoading(true);
+      try {
+        const res = await getNewsAdmin({ page: '1', limit: '20' });
+        const fetched = res.data || res;
+        setArticles(Array.isArray(fetched) ? fetched : fetched.items || []);
+      } catch (e) {
+        setArticles([]);
+      }
+      setLoading(false);
+    };
+    fetchNews();
+    }, [])
+  );
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <>
+      <ProfileBar />
+
+      <View style={styles.outer}>
+        <View style={styles.container}>
+          <View style={styles.headerRow}>
+            <Text style={styles.header}>ข่าวสาร</Text>
+            <TouchableOpacity style={styles.createButton} onPress={handleCreateNews}>
+              <Text style={styles.createButtonText}>Create News</Text>
+            </TouchableOpacity>
+          </View>
+
+          {loading ? (
+            <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 40 }} />
+          ) : (
+            <FlatList
+              data={articles}
+              keyExtractor={(item) => item.id || item._id}
+              renderItem={({ item }) => (
+                <Item
+                  slug={item.slug || item._slug}
+                  title={item.title}
+                  message={item.message}
+                  summary={item.summary}
+                  coverImage={item.coverImage}
+                  updatedAt={item.updatedAt}
+                />
+              )}
+              contentContainerStyle={{ paddingBottom: 16 }}
+              ListEmptyComponent={
+                <Text style={{ textAlign: 'center', marginTop: 40, color: '#888' }}>
+                  ไม่พบข้อมูลข่าวสาร
+                </Text>
+              }
+            />
+          )}
+        </View>
+      </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  outer: {
+    flex: 1,
+    backgroundColor: '#F5F5F5',
+    alignItems: 'center',
+  },
+  container: {
+    flex: 1,
+    width: '100%',
+    maxWidth: 900, // Responsive max width for PC
+    padding: 24,
+    backgroundColor: '#F5F5F5',
+  },
+  banner: {
+    width: '100%',
+    height: 120,
+    marginBottom: 16,
+    maxWidth: 900,
+    alignSelf: 'center',
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 24,
+    alignSelf: 'center',
+  },
+  headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
+    marginBottom: 24,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  createButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  createButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });

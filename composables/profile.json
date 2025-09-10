@@ -1,0 +1,9 @@
+{
+  "id": "user001",
+  "name": "Somchai Suksan",
+  "email": "somchai@example.com",
+  "phone": "0812345678",
+  "role": "admin",
+  "points": 120,
+  "avatar": "https://randomuser.me/api/portraits/men/1.jpg"
+}

@@ -1,0 +1,16 @@
+[
+  {
+    "id": "news001",
+    "title": "Mumya Pharmacy Grand Opening!",
+    "summary": "Join us for special discounts and gifts.",
+    "image": "https://images.unsplash.com/photo-1465101046530-73398c7f28ca",
+    "date": "2025-09-02"
+  },
+  {
+    "id": "news002",
+    "title": "Free Health Check Event",
+    "summary": "Get a free health check at our store.",
+    "image": "https://images.unsplash.com/photo-1504439468489-c8920d796a29",
+    "date": "2025-09-03"
+  }
+]
