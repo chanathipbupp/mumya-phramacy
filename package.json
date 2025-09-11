@@ -12,10 +12,14 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
+    "@lexical/react": "^0.35.0",
     "@react-native-community/datetimepicker": "^8.4.4",
+    "@react-native-picker/picker": "^2.11.2",
     "@react-navigation/bottom-tabs": "^7.3.10",
     "@react-navigation/elements": "^2.3.8",
     "@react-navigation/native": "^7.1.6",
+    "@tiptap/react": "^3.4.2",
+    "@tiptap/starter-kit": "^3.4.2",
     "expo": "~53.0.22",
     "expo-blur": "~14.1.5",
     "expo-constants": "~17.1.7",
@@ -29,6 +33,7 @@
     "expo-symbols": "~0.4.5",
     "expo-system-ui": "~5.0.11",
     "expo-web-browser": "~14.2.0",
+    "lexical": "^0.35.0",
     "nativewind": "^4.1.23",
     "prettier-plugin-tailwindcss": "^0.5.14",
     "react": "19.0.0",
@@ -41,7 +46,8 @@
     "react-native-screens": "~4.11.1",
     "react-native-web": "~0.20.0",
     "react-native-webview": "13.13.5",
-    "react-quill": "^2.0.0",
+    "slate": "^0.118.1",
+    "slate-react": "^0.117.4",
     "tailwindcss": "^3.4.17"
   },
   "devDependencies": {

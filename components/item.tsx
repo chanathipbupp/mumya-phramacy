@@ -6,13 +6,26 @@ import { useRouter } from 'expo-router';
 type ItemProps = {
   slug: string;
   title: string;
-  summary: string;
-  image: string;
-  date: string;
-  content?: string; // Add content prop
+  summary?: string;
+  coverImage: string;
+  date?: string;
+  message?: string;
+  content?: string;
+  startAt?: string;
+  endAt?: string;
+  type?: string;
 };
 
-export default function Item({ slug, title, summary, image, date, content }: ItemProps) {
+export default function Item({
+  slug,
+  title,
+  summary,
+  coverImage,
+  content,
+  startAt,
+  endAt,
+  type: newsType,
+}: ItemProps) {
   const [loading, setLoading] = useState(true);
   const { user } = useUser();
   const router = useRouter();
@@ -31,21 +44,40 @@ export default function Item({ slug, title, summary, image, date, content }: Ite
     });
   };
 
+  // Format dates
+  const formatDate = (iso?: string) => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('th-TH', { year: 'numeric', month: '2-digit', day: '2-digit' });
+  };
+
   return (
     <TouchableOpacity onPress={handlePress} activeOpacity={0.8}>
       <View style={styles.container}>
         <View style={styles.imageWrapper}>
           {loading && <View style={styles.imagePlaceholder} />}
           <Image
-            source={{ uri: image }}
+            source={{ uri: coverImage }}
             style={styles.image}
             onLoadEnd={() => setLoading(false)}
           />
         </View>
         <View style={styles.content}>
           <Text style={styles.title}>{title}</Text>
-          <Text style={styles.summary}>{summary}</Text>
-          <Text style={styles.date}>{date}</Text>
+          <Text
+            style={styles.contentPreview}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {content}
+          </Text>
+          <Text style={styles.dateType}>
+            {formatDate(startAt)}
+            {startAt && endAt ? ' - ' : ''}
+            {formatDate(endAt)}
+          </Text>
+          <Text style={styles.typeText}>{newsType}</Text>
           {user.role === 'admin' && (
             <View style={styles.editButtonWrapper}>
               <Button title="แก้ไข" onPress={handleEdit} />
@@ -60,51 +92,81 @@ export default function Item({ slug, title, summary, image, date, content }: Ite
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    marginVertical: 8,
+    marginVertical: 12,
     backgroundColor: '#fff',
-    borderRadius: 8,
+    borderRadius: 16,
     overflow: 'hidden',
-    elevation: 2,
+    padding: 12,
+    alignItems: 'flex-start',
+    // Shadow for iOS/web
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    // Shadow for Android
+    elevation: 6,
   },
   imageWrapper: {
-    width: 80,
-    height: 80,
+    width: 120,
+    height: 120,
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
+    borderRadius: 24,
+    overflow: 'hidden',
+    backgroundColor: '#f3f3f3',
+    marginRight: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
   },
   imagePlaceholder: {
     position: 'absolute',
-    width: 80,
-    height: 80,
-    backgroundColor: '#333',
-    borderRadius: 4,
+    width: 120,
+    height: 120,
+    backgroundColor: '#ddd',
+    borderRadius: 24,
   },
   image: {
-    width: 80,
-    height: 80,
-    borderRadius: 4,
+    width: 120,
+    height: 120,
+    borderRadius: 24,
   },
   content: {
     flex: 1,
-    padding: 10,
-    justifyContent: 'center',
+    minHeight: 120,
+    justifyContent: 'flex-start',
+    paddingVertical: 4,
+    position: 'relative',
   },
   title: {
     fontWeight: 'bold',
-    fontSize: 16,
-    marginBottom: 4,
+    fontSize: 18,
+    marginBottom: 6,
   },
-  summary: {
-    fontSize: 14,
-    color: '#555',
-    marginBottom: 4,
-  },
-  date: {
+  contentPreview: {
     fontSize: 12,
-    color: '#999',
+    color: '#444',
+    marginBottom: 2,
+    minHeight: 28,
+  },
+  dateType: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 8,
+  },
+  typeText: {
+    fontSize: 12,
+    color: '#888',
+    marginBottom: 8,
   },
   editButtonWrapper: {
-    padding: 10,
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    padding: 0,
+    margin: 0,
+    borderRadius: 8,
+    overflow: 'hidden',
   },
 });
