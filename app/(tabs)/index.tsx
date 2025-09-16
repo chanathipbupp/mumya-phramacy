@@ -32,23 +32,26 @@ export default function HomeScreen() {
       params: { mode: 'add' },
     });
   };
+
+  // Move fetchNews outside useFocusEffect so you can call it anytime
+  const fetchNews = async () => {
+    setLoading(true);
+    try {
+      const res = await getNews({ page: '1', limit: '10' });
+      const fetched = res.data || res;
+      const items = Array.isArray(fetched) ? fetched : fetched.items || [];
+      setNews(items);
+      setHasMore((fetched.total || items.length) > items.length);
+      setPage(1);
+    } catch (e) {
+      setNews([]);
+      setHasMore(false);
+    }
+    setLoading(false);
+  };
+
   useFocusEffect(
     React.useCallback(() => {
-      const fetchNews = async () => {
-        setLoading(true);
-        try {
-          const res = await getNews({ page: '1', limit: '10' });
-          const fetched = res.data || res;
-          const items = Array.isArray(fetched) ? fetched : fetched.items || [];
-          setNews(items);
-          setHasMore((fetched.total || items.length) > items.length);
-          setPage(1);
-        } catch (e) {
-          setNews([]);
-          setHasMore(false);
-        }
-        setLoading(false);
-      };
       fetchNews();
     }, [])
   );
@@ -87,9 +90,7 @@ export default function HomeScreen() {
         <View style={styles.container}>
           <View style={styles.headerRow}>
             <Text style={styles.header}>ข่าวสาร</Text>
-            <TouchableOpacity style={styles.createButton} onPress={handleCreateNews}>
-              <Text style={styles.createButtonText}>Create News</Text>
-            </TouchableOpacity>
+            
           </View>
 
           {/* Top Bar */}
@@ -103,8 +104,9 @@ export default function HomeScreen() {
               <Text style={styles.dateText}>Today, {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</Text>
             </View>
             <TouchableOpacity style={styles.bellWrapper}>
-              <Ionicons name="notifications-outline" size={28} color="#FFC107" />
-              <View style={styles.bellDot} />
+              <TouchableOpacity style={styles.createButton} onPress={handleCreateNews}>
+              <Text style={styles.createButtonText}>Create News</Text>
+            </TouchableOpacity>
             </TouchableOpacity>
           </View>
 
@@ -113,7 +115,7 @@ export default function HomeScreen() {
             <Ionicons name="search" size={20} color="#bbb" style={{ marginLeft: 12 }} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search articles"
+              placeholder="Search News"
               value={search}
               onChangeText={setSearch}
             />
@@ -126,6 +128,7 @@ export default function HomeScreen() {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.chipRow}
+            showsVerticalScrollIndicator={false}
           >
             {CATEGORIES.map((cat, idx) => (
               <TouchableOpacity
@@ -151,7 +154,7 @@ export default function HomeScreen() {
           </ScrollView>
           </View>
           {loading ? (
-            <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 40 }} />
+            <ActivityIndicator size="large" color="#5ccbffff" style={{ marginTop: 40 }} />
           ) : (
             <FlatList
               ref={flatListRef}
@@ -159,6 +162,7 @@ export default function HomeScreen() {
               keyExtractor={(item) => item.id || item._id}
               renderItem={({ item }) => (
                 <Item
+                  id={item.id || item._id}
                   slug={item.slug || item._slug}
                   title={item.title}
                   coverImage={item.coverImage}
@@ -166,8 +170,10 @@ export default function HomeScreen() {
                   startAt={item.startAt}
                   endAt={item.endAt}
                   type={item.type}
+                  onDeleted={fetchNews} // <-- pass reload callback
                 />
               )}
+              showsVerticalScrollIndicator={false}
               contentContainerStyle={{ paddingBottom: 16 }}
               ListEmptyComponent={
                 <Text style={{ textAlign: 'center', marginTop: 40, color: '#888' }}>
@@ -178,7 +184,7 @@ export default function HomeScreen() {
               onEndReachedThreshold={0.2}
               ListFooterComponent={
                 loadingMore ? (
-                  <ActivityIndicator size="small" color="#007AFF" style={{ marginVertical: 16 }} />
+                  <ActivityIndicator size="small" color="#5ccbffff" style={{ marginVertical: 16 }} />
                 ) : null
               }
             />
@@ -222,7 +228,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   createButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#5ccbffff',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8,
@@ -288,6 +294,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     paddingHorizontal: 10,
     backgroundColor: 'transparent',
+    color: '#bdbdbdff',
     height: 44,
   },
   chipRow: {

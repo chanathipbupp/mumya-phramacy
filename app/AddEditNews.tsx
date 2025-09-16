@@ -195,8 +195,11 @@ export default function AddEditNews() {
       const res = await uploadFile(file);
       handleChange('coverImage', res.url || res.data?.url || '');
       Alert.alert('สำเร็จ', 'อัปโหลดไฟล์สำเร็จ');
+         // window.alert('อัปโหลดไฟล์สำเร็จ');
+
     } catch (err) {
       Alert.alert('เกิดข้อผิดพลาด', 'อัปโหลดไฟล์ไม่สำเร็จ');
+      window.alert('อัปโหลดไฟล์ไม่สำเร็จ');
     }
     setUploading(false);
   };
@@ -454,7 +457,7 @@ export default function AddEditNews() {
                 </View>
               </View>
               <View style={styles.buttonWrapper}>
-                <Button title="บันทึก" onPress={handleSubmit} />
+                <Button title={loading ? "กำลังบันทึก..." : mode === 'edit' ? "อัปเดต" : "สร้าง"} onPress={handleSubmit} disabled={loading} />
               </View>
             </>
           )}
@@ -586,7 +589,7 @@ const styles = StyleSheet.create({
   buttonWrapper: {
     marginTop: 32,
     marginBottom: 8,
-    alignItems: 'center',
+    alignItems: 'flex-start', // <-- align left
   },
   pickerWrapper: {
     borderWidth: 1,

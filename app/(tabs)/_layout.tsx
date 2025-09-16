@@ -4,6 +4,10 @@ import { Platform } from 'react-native';
 
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import NewsTabIcon from '../components/NewsTabIcon';
+import ArticleTabIcon from '../components/ArticleTabIcon';
+import RewardTabIcon from '../components/RewardTabIcon';
+import ProfileTabIcon from '../components/ProfileTabIcon';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -21,27 +25,40 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'ข่าวสาร',
+          tabBarIcon: ({ color, size }) => (
+            <NewsTabIcon color={color} size={size} />
+          ),
+          tabBarLabel: 'ข่าวสาร',
         }}
       />
       <Tabs.Screen
         name="article"
         options={{
-          title: 'บทความ',
+          tabBarIcon: ({ color, size }) => (
+            <ArticleTabIcon color={color} size={size} />
+          ),
+          tabBarLabel: 'บทความ',
         }}
       />
       <Tabs.Screen
         name="pointReward"
         options={{
-          title: 'สะสมแต้ม',
+          tabBarIcon: ({ color, size }) => (
+            <RewardTabIcon color={color} size={size} />
+          ),
+          tabBarLabel: 'สะสมแต้ม',
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'โปรไฟล์',
+          tabBarIcon: ({ color, size }) => (
+            <ProfileTabIcon color={color} size={size} />
+          ),
+          tabBarLabel: 'โปรไฟล์',
         }}
       />
+
     </Tabs>
   );
 }

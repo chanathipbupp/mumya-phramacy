@@ -81,31 +81,6 @@ export async function getNews(params?: {
   return res.json();
 }
 
-// Get Articles List
-export async function getArticles(params?: {
-  page?: string;
-  limit?: string;
-  activeOnly?: string;
-  q?: string;
-  status?: string;
-  tags?: string;
-  sortby?: string;
-  order?: string;
-}): Promise<any> {
-  const searchParams = new URLSearchParams(params as Record<string, string>).toString();
-  const url = `${API_URL}/articles${searchParams ? `?${searchParams}` : ''}`;
-  const res = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${authToken}`,
-    },
-  });
-  if (!res.ok) {
-    await handleApiError(res, 'Failed to fetch articles list');
-  }
-  return res.json();
-}
 
 
 
@@ -255,6 +230,260 @@ export async function uploadFile(file: File): Promise<any> {
 
   if (!res.ok) {
     await handleApiError(res, 'Failed to upload file');
+  }
+  return res.json();
+}
+
+// Soft Delete News (Admin)
+export async function deleteNews(id: string): Promise<any> {
+  const url = `${API_URL}/news/${id}`;
+  const res = await fetch(url, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${authToken}`,
+      'Content-Type': 'application/json',
+    },
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to delete news');
+  }
+  return res.json();
+}
+
+// Get Articles (Public)
+export async function getArticles(params?: {
+  page?: string;
+  limit?: string;
+  activeOnly?: string;
+  q?: string;
+  status?: string;
+  tags?: string;
+  sortBy?: string;
+  order?: string;
+}): Promise<any> {
+  const searchParams = new URLSearchParams(params as Record<string, string>).toString();
+  const url = `${API_URL}/articles${searchParams ? `?${searchParams}` : ''}`;
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to fetch articles');
+  }
+  return res.json();
+}
+
+// Create Article (Admin)
+export async function createArticle(data: {
+  title: string;
+  content: object;
+  status: string;
+  tags: string[];
+  customSlug: string;
+  coverImage: string;
+  publishDate: string;
+  activeFrom: string;
+  activeTo: string;
+  isOptional: string[];
+}): Promise<any> {
+  const url = `${API_URL}/articles`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to create article');
+  }
+  return res.json();
+}
+
+// Update Article (Admin)
+export async function updateArticle(id: string, data: {
+  title: string;
+  content: object;
+  status: string;
+  publishDate: string;
+  activeFrom: string;
+  activeTo: string;
+  customSlug: string;
+  coverImage: string;
+  isOptional: string[];
+}): Promise<any> {
+  const url = `${API_URL}/articles/${id}`;
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to update article');
+  }
+  return res.json();
+}
+
+// Soft Delete Article (Admin)
+export async function deleteArticle(id: string): Promise<any> {
+  const url = `${API_URL}/articles/${id}`;
+  const res = await fetch(url, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${authToken}`,
+      'Content-Type': 'application/json',
+    },
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to delete article');
+  }
+  return res.json();
+}
+
+// Get Article by Slug (Public)
+export async function getArticleBySlug(slug: string): Promise<any> {
+  const url = `${API_URL}/articles/${slug}`;
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to fetch article by slug');
+  }
+  return res.json();
+}
+
+// 1. GET /points/me/balance
+export async function getMyPointBalance(): Promise<any> {
+  const url = `${API_URL}/points/me/balance`;
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to fetch my point balance');
+  }
+  return res.json();
+}
+
+// 2. GET /points/me/ledger
+export async function getMyPointLedger(params?: {
+  limit?: string;
+  action?: string;
+  from?: string;
+  to?: string;
+  cursor?: string;
+  refType?: string[];
+  refId?: string;
+}): Promise<any> {
+  const searchParams = new URLSearchParams();
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        value.forEach(v => searchParams.append(key, v));
+      } else if (value !== undefined) {
+        searchParams.append(key, value as string);
+      }
+    });
+  }
+  const url = `${API_URL}/points/me/ledger${searchParams.toString() ? `?${searchParams}` : ''}`;
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to fetch my point ledger');
+  }
+  return res.json();
+}
+
+// 3. GET /points/{uid}/ledger
+export async function getUserPointLedger(uid: string, params?: {
+  limit?: string;
+  action?: string;
+  from?: string;
+  to?: string;
+  cursor?: string;
+  refType?: string[];
+  refId?: string;
+}): Promise<any> {
+  const searchParams = new URLSearchParams();
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        value.forEach(v => searchParams.append(key, v));
+      } else if (value !== undefined) {
+        searchParams.append(key, value as string);
+      }
+    });
+  }
+  const url = `${API_URL}/points/${uid}/ledger${searchParams.toString() ? `?${searchParams}` : ''}`;
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to fetch user point ledger');
+  }
+  return res.json();
+}
+
+// 4. GET /points/{uid}/balance
+export async function getUserPointBalanceByUid(uid: string): Promise<any> {
+  const url = `${API_URL}/points/${uid}/balance`;
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to fetch user point balance by uid');
+  }
+  return res.json();
+}
+
+// 5. POST /points/admin/adjust
+export async function adjustUserPointAdmin(data: {
+  userId: string;
+  action: 'credit' | 'debit';
+  amount: number;
+  refType?: string;
+  refId?: string;
+  idempotencyKey: string;
+  expiresAt: string;
+}): Promise<any> {
+  const url = `${API_URL}/points/admin/adjust`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to adjust user point (admin)');
   }
   return res.json();
 }
