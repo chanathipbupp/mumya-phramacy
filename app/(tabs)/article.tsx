@@ -4,12 +4,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import ArticleItem from '../../components/ArticleItem';
 import { getArticles } from '../../composables/fetchAPI';
+import { useUser } from '../../components/UserProvider'
+import ProfileBar from '../../components/ProfileBar';
 
 export default function ArticleScreen() {
   const router = useRouter();
   const [articles, setArticles] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [search, setSearch] = React.useState('');
+  const user = useUser();
+
+  console.log("user in article ", user)
 
   const fetchArticles = async () => {
     setLoading(true);
@@ -44,13 +49,11 @@ export default function ArticleScreen() {
     article.title?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const userProfile = user?.user || {};
+
   return (
     <View style={{ flex: 1, padding: 24, backgroundColor: '#F5F5F5' }}>
-      {/* Header Row */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-        <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 24 }}>บทความ</Text>
 
-      </View>
 
       {/* Top Bar */}
       <View style={{
@@ -60,13 +63,12 @@ export default function ArticleScreen() {
         borderRadius: 16,
         padding: 12,
       }}>
-        <Image
-          source={{ uri: 'https://randomuser.me/api/portraits/women/44.jpg' }}
-          style={{ width: 40, height: 40, borderRadius: 20, marginRight: 12 }}
-        />
+
         <View style={{ flex: 1 }}>
-          <Text style={{ fontWeight: 'bold', fontSize: 15 }}>Hi, Nancy</Text>
-          <Text style={{ color: '#888', fontSize: 13 }}>Today, {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</Text>
+          <ProfileBar
+            avatarUrl={userProfile.avatarUrl || userProfile.picture}
+            name={userProfile.name || userProfile.displayName || 'Nancy'}
+          />
         </View>
         <TouchableOpacity style={{ marginLeft: 8 }}>
           {/* <Ionicons name="notifications-outline" size={28} color="#FFC107" />
@@ -81,19 +83,22 @@ export default function ArticleScreen() {
             borderWidth: 1,
             borderColor: '#fff',
           }} /> */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-            <TouchableOpacity
-              onPress={handleCreateArticles}
-              style={{
-                backgroundColor: '#5ccbffff',
-                borderRadius: 8,
-                paddingHorizontal: 16,
-                paddingVertical: 8,
-              }}
-            >
-              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 15 }}>Create Article</Text>
-            </TouchableOpacity>
-          </View>
+
+          {user?.user.role?.toLowerCase() === 'admin' && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <TouchableOpacity
+                onPress={handleCreateArticles}
+                style={{
+                  backgroundColor: '#5ccbffff',
+                  borderRadius: 8,
+                  paddingHorizontal: 16,
+                  paddingVertical: 8,
+                }}
+              >
+                <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 15 }}>Create Article</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -120,7 +125,7 @@ export default function ArticleScreen() {
           onChangeText={setSearch}
           placeholderTextColor="#aaa"
         />
-        <Ionicons name="filter-outline" size={22} color="#bbb" style={{ marginRight: 4, marginLeft: 8 }} />
+        {/* <Ionicons name="filter-outline" size={22} color="#bbb" style={{ marginRight: 4, marginLeft: 8 }} /> */}
       </View>
 
       {/* Articles List */}
@@ -151,6 +156,7 @@ export default function ArticleScreen() {
             date={article.publishDate}
             tags={article.tags}
             onDeleted={fetchArticles}
+            role={user?.user?.role}
           />
         ))}
         {loading && <Text>Loading...</Text>}

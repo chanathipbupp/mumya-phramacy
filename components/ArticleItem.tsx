@@ -11,11 +11,12 @@ type ArticleItemProps = {
   date?: string;
   tags?: string[]; // <-- add this line
   onDeleted?: () => void;
+  role?: string; // <-- add this line
 };
 
 export default function ArticleItem({ slug, ...props }: ArticleItemProps) {
   const router = useRouter();
-
+  console.log(props?.role, "role in article item")
   const handleDelete = async (e?: any) => {
     if (e?.stopPropagation) e.stopPropagation();
     if (!window.confirm("คุณแน่ใจหรือไม่ว่าต้องการลบบทความนี้?")) return;
@@ -60,6 +61,7 @@ export default function ArticleItem({ slug, ...props }: ArticleItemProps) {
         }}
       >
         {/* Big Red X */}
+       {props?.role?.toLowerCase() === 'admin' && (
         <button
           onClick={handleDelete}
           style={{
@@ -84,6 +86,7 @@ export default function ArticleItem({ slug, ...props }: ArticleItemProps) {
           }}
           title="ลบบทความ"
         >✕</button>
+       )}
 
         {/* Picture */}
         <div
@@ -198,6 +201,8 @@ export default function ArticleItem({ slug, ...props }: ArticleItemProps) {
                 }) + ' น.'
                 : 'Date..........'}
             </div>
+
+            {props?.role?.toLowerCase() === 'admin' && (
             <button
               onClick={e => {
                 e.stopPropagation(); // <-- Add this line
@@ -220,6 +225,8 @@ export default function ArticleItem({ slug, ...props }: ArticleItemProps) {
             >
               แก้ไข
             </button>
+            )}
+            
           </div>
         </div>
       </div>

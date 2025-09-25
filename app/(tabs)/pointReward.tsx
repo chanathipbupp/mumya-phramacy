@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Image } from 'expo-image';
 import { Platform, StyleSheet, View, Text, TouchableOpacity, TextInput, Picker, FlatList, ScrollView } from 'react-native';
-
+import * as Clipboard from 'expo-clipboard';
 // import history from '../../composables/history.json';
-import { getMyPointBalance, getMyPointLedger } from '../../composables/fetchAPI';
+import { getMyPointBalance, getMyPointLedger, getUserList, adjustUserPointAdmin, getLatestPointLedger } from '../../composables/fetchAPI';
+import { useUser } from '../../components/UserProvider';
 
 const mockUsers = [
   { id: '1', name: 'สมชาย ใจดี', phone: '0812345678' },
@@ -44,7 +45,7 @@ const historyDashboard = [
     description: 'ค่าธรรมเนียม',
     refType: 'fee',
   },
-    {
+  {
     id: 'h5',
     action: 'credit',
     amount: 1050,
@@ -69,12 +70,20 @@ export default function TabTwoScreen() {
   const [loading, setLoading] = useState(true);
   const [adminMode, setAdminMode] = useState(false);
   const [adminTab, setAdminTab] = useState<'dashboard' | 'history'>('history');
+  const [userList, setUserList] = useState<any[]>([]);
+  const [userListLoading, setUserListLoading] = useState(false);
+  const [adminHistory, setAdminHistory] = useState<any[]>([]);
+  const [adminHistoryLoading, setAdminHistoryLoading] = useState(false);
+  const user = useUser();
 
+  console.log('user in pointReward', user);
   // Admin action states
   const [actionType, setActionType] = useState<'credit' | 'debit'>('credit');
   const [phone, setPhone] = useState('');
   console.log('point history', history);
   console.log('point balance', point);
+
+
   useEffect(() => {
     setLoading(true);
     Promise.all([
@@ -91,6 +100,75 @@ export default function TabTwoScreen() {
       })
       .finally(() => setLoading(false));
   }, []);
+  // Fetch user list when adminTab is 'dashboard' and adminMode is true
+  useEffect(() => {
+    if (adminMode && adminTab === 'dashboard') {
+      setUserListLoading(true);
+      getUserList({
+        search: '',
+        page: '1',
+        limit: '20',
+        sortBy: 'createdAt',
+        sortDir: 'desc'
+      })
+        .then(data => setUserList(data?.items ?? []))
+        .catch(() => setUserList([]))
+        .finally(() => setUserListLoading(false));
+    }
+  }, [adminMode, adminTab]);
+  console.log('userList', userList);
+
+  useEffect(() => {
+    if (adminMode && adminTab === 'history') {
+      setAdminHistoryLoading(true);
+      getLatestPointLedger({ limit: '20' })
+        .then(data => setAdminHistory(Array.isArray(data) ? data : [])) // <-- FIX HERE
+        .catch(() => setAdminHistory([]))
+        .finally(() => setAdminHistoryLoading(false));
+    }
+    console.log('adminHistory', adminHistory);
+  }, [adminMode, adminTab]);
+
+  // New function for confirm button
+  const handleConfirmAdjustPoint = async () => {
+    //    console.log('Entered phone:', phone.trim());
+    // console.log('UserList phones:', userList.map(u => `[${u.phone}]`).join(', '));
+
+    // Find user by phone (exact match)
+    const selectedUser = userList.find(u => u.phone?.trim() === phone.trim());
+    console.log('Selected user:', selectedUser.id);
+    console.log(new Date(Date.now() + 60000).toISOString().slice(0, 10)); // Output: 2025-09-18
+    console.log('Action Type:', actionType);
+    console.log('Note:', note);
+    console.log('Amount:', note?.amount);
+    if (!selectedUser) {
+      alert('ไม่พบผู้ใช้ที่มีเบอร์นี้');
+      return;
+    }
+    if (!note?.amount) {
+      alert('กรุณากรอกจำนวนแต้ม');
+      return;
+    }
+    try {
+      await adjustUserPointAdmin({
+        userId: selectedUser.id,
+        action: actionType,
+        amount: Number(note.amount),
+        idempotencyKey: `${selectedUser.id}-${Date.now()}`,
+        expiresAt: new Date(Date.now() + 60000).toISOString().slice(0, 10),
+        note: note?.remark || '',
+        // refType: 'manual',
+        // refId: '',
+      });
+      alert('ปรับแต้มสำเร็จ');
+      setNote(null);
+      setPhone('');
+      // Optionally refresh user list or point balance here
+    } catch (err: any) {
+      alert('เกิดข้อผิดพลาด: ' + (err.message || ''));
+    }
+  };
+
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -98,13 +176,15 @@ export default function TabTwoScreen() {
       <View style={styles.container}>
         {/* Header with AdminMode button */}
         <View style={styles.headerRow}>
-          <Text style={styles.header}>แต้มของฉัน</Text>
-          <TouchableOpacity
-            style={styles.adminBtn}
-            onPress={() => setAdminMode(m => !m)}
-          >
-            <Text style={styles.adminBtnText}>{adminMode ? 'User Mode' : 'Admin Mode'}</Text>
-          </TouchableOpacity>
+          {/* <Text style={styles.header}>แต้มของฉัน</Text> */}
+          {user?.user?.role==="admin" && (
+            <TouchableOpacity
+              style={styles.adminBtn}
+              onPress={() => setAdminMode(m => !m)}
+            >
+              <Text style={styles.adminBtnText}>{adminMode ? 'User Mode' : 'Admin Mode'}</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {!adminMode ? (
@@ -204,7 +284,12 @@ export default function TabTwoScreen() {
               </View>
               <View style={styles.actionBtnRow}>
                 <TouchableOpacity style={styles.confirmBtn}>
-                  <Text style={styles.confirmBtnText}>ยืนยัน</Text>
+                  <TouchableOpacity
+                    style={styles.confirmBtn}
+                    onPress={handleConfirmAdjustPoint}
+                  >
+                    <Text style={styles.confirmBtnText}>ยืนยัน</Text>
+                  </TouchableOpacity>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.clearBtn}
@@ -251,13 +336,37 @@ export default function TabTwoScreen() {
                 <View style={styles.tableHeader}>
                   <Text style={[styles.tableCell, { flex: 2, fontWeight: 'bold' }]}>ชื่อ</Text>
                   <Text style={[styles.tableCell, { flex: 2, fontWeight: 'bold' }]}>เบอร์โทร</Text>
+                  <Text style={[styles.tableCell, { flex: 2, fontWeight: 'bold' }]}>อีเมล</Text>
                 </View>
-                {mockUsers.map(user => (
-                  <View key={user.id} style={styles.tableRow}>
-                    <Text style={[styles.tableCell, { flex: 2 }]}>{user.name}</Text>
-                    <Text style={[styles.tableCell, { flex: 2 }]}>{user.phone}</Text>
-                  </View>
-                ))}
+                {userListLoading ? (
+                  <Text style={{ padding: 8 }}>Loading...</Text>
+                ) : userList.length === 0 ? (
+                  <Text style={{ padding: 8, color: '#999' }}>ไม่มีข้อมูลผู้ใช้</Text>
+                ) : (
+                  // Filter userList by phone number
+                  userList
+                    .filter(user =>
+                      phone.trim() === '' ? true : user.phone?.includes(phone.trim())
+                    )
+                    .map(user => (
+                      <View key={user.id} style={styles.tableRow}>
+                        <Text style={[styles.tableCell, { flex: 2 }]}>{user.name || '-'}</Text>
+                        <View style={{ flex: 2, flexDirection: 'row', alignItems: 'center' }}>
+
+                          {user.phone && (
+                            <TouchableOpacity
+                              onPress={() => Clipboard.setStringAsync(user.phone)}
+                              style={{ marginLeft: 8, padding: 2 }}
+                            >
+                              <Text style={{ color: '#0a65aeff', fontSize: 14 }}>📋</Text>
+                            </TouchableOpacity>
+                          )}
+                          <Text style={styles.tableCell}>{user.phone || '-'}</Text>
+                        </View>
+                        <Text style={[styles.tableCell, { flex: 2 }]}>{user.email || '-'}</Text>
+                      </View>
+                    ))
+                )}
               </View>
             ) : (
               <View style={styles.adminSection}>
@@ -272,7 +381,7 @@ export default function TabTwoScreen() {
                 {historyDashboard.length === 0 ? (
                   <Text style={{ padding: 8, color: '#999' }}>ไม่มีประวัติ</Text>
                 ) : (
-                  historyDashboard.map(item => (
+                  adminHistory.map(item => (
                     <View key={item.id} style={styles.tableRow}>
                       <Text style={[styles.tableCell, { flex: 1, color: item.action === 'debit' ? '#D32F2F' : '#00796B' }]}>
                         {item.action === 'debit' ? 'ลดแต้ม' : 'เพิ่มแต้ม'}

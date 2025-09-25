@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, Button, TouchableOpacity, Alert } from 'react-native';
-import { useUser } from '../contexts/UserContext';
+// import { useUser } from '../contexts/UserContext';
 import { useRouter } from 'expo-router';
 import { deleteNews } from '../composables/fetchAPI';
-
+import profile from '../composables/profile.json'
 type ItemProps = {
   id: string;
   slug: string;
@@ -17,6 +17,7 @@ type ItemProps = {
   endAt?: string;
   type?: string;
   onDeleted?: () => void; // <-- add this
+  role?: string; // <-- add this
 };
 
 export default function Item({
@@ -30,11 +31,11 @@ export default function Item({
   endAt,
   type: newsType,
   onDeleted, // <-- add this
+  role
 }: ItemProps) {
   const [loading, setLoading] = useState(true);
-  const { user } = useUser();
+  console.log(role, "role in item")
   const router = useRouter();
-
   const handleEdit = () => {
     router.push({
       pathname: '/AddEditNews',
@@ -73,8 +74,9 @@ export default function Item({
   return (
     <TouchableOpacity onPress={handlePress} activeOpacity={0.8}>
       <View style={styles.container}>
+
         {/* Red X button for admin */}
-        {user.role === 'admin' && (
+        {role?.toLowerCase() === 'admin' && (
           <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
             <Text style={styles.deleteBtnText}>✕</Text>
           </TouchableOpacity>
@@ -100,11 +102,14 @@ export default function Item({
             {formatDate(startAt)}
           </Text>
           <Text style={styles.typeText}>{newsType}</Text>
-          {user.role === 'admin' && (
+
+
+          {role?.toLowerCase() === 'admin' && (
             <View style={styles.editButtonWrapper}>
               <Button title="แก้ไข" onPress={handleEdit} />
             </View>
           )}
+
         </View>
       </View>
     </TouchableOpacity>

@@ -6,6 +6,7 @@ import Item from '../../components/item';
 import ProfileBar from '../../components/ProfileBar';
 import { getNews } from '../../composables/fetchAPI';
 import { useFocusEffect } from '@react-navigation/native';
+import { useUser } from '../../components/UserProvider';
 
 const CATEGORIES = [
   { label: 'All', value: '' },
@@ -25,6 +26,8 @@ export default function HomeScreen() {
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const flatListRef = React.useRef<FlatList>(null);
+  const user = useUser();
+  const userProfile = user?.user || {};
 
   const handleCreateNews = () => {
     router.push({
@@ -52,6 +55,7 @@ export default function HomeScreen() {
 
   useFocusEffect(
     React.useCallback(() => {
+      // console.log('User on HomeScreen:', user);
       fetchNews();
     }, [])
   );
@@ -85,29 +89,29 @@ export default function HomeScreen() {
 
   return (
     <>
-      {/* <ProfileBar /> */}
       <View style={styles.outer}>
         <View style={styles.container}>
-          <View style={styles.headerRow}>
+
+          {/* <View style={styles.headerRow}>
             <Text style={styles.header}>ข่าวสาร</Text>
-            
-          </View>
+
+          </View> */}
 
           {/* Top Bar */}
           <View style={styles.topBar}>
-            <Image
-              source={{ uri: 'https://randomuser.me/api/portraits/women/44.jpg' }}
-              style={styles.avatar}
-            />
+
             <View style={{ flex: 1, marginLeft: 12 }}>
-              <Text style={styles.greeting}>Hi, Nancy</Text>
-              <Text style={styles.dateText}>Today, {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</Text>
-            </View>
-            <TouchableOpacity style={styles.bellWrapper}>
-              <TouchableOpacity style={styles.createButton} onPress={handleCreateNews}>
-              <Text style={styles.createButtonText}>Create News</Text>
-            </TouchableOpacity>
-            </TouchableOpacity>
+              <ProfileBar
+                avatarUrl={userProfile.avatarUrl || userProfile.picture}
+                name={userProfile.name || userProfile.displayName || ''}
+              />            </View>
+            {user?.user?.role?.toLowerCase() === 'admin' &&
+              <TouchableOpacity style={styles.bellWrapper}>
+                <TouchableOpacity style={styles.createButton} onPress={handleCreateNews}>
+                  <Text style={styles.createButtonText}>Create News</Text>
+                </TouchableOpacity>
+              </TouchableOpacity>
+            }
           </View>
 
           {/* Search Bar */}
@@ -119,39 +123,39 @@ export default function HomeScreen() {
               value={search}
               onChangeText={setSearch}
             />
-            <Ionicons name="filter-outline" size={22} color="#bbb" style={{ marginRight: 12 }} />
+            {/* <Ionicons name="filter-outline" size={22} color="#bbb" style={{ marginRight: 12 }} /> */}
           </View>
 
           {/* Category Chips */}
           <View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.chipRow}
-            showsVerticalScrollIndicator={false}
-          >
-            {CATEGORIES.map((cat, idx) => (
-              <TouchableOpacity
-                key={cat.value}
-                style={[
-                  styles.chip,
-                  selectedCategory === cat.value && styles.chipActive,
-                  idx === CATEGORIES.length - 1 && { marginRight: 0 },
-                ]}
-                onPress={() => {
-                  flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
-                  setSelectedCategory(cat.value);
-                }}
-              >
-                <Text style={[
-                  styles.chipText,
-                  selectedCategory === cat.value && styles.chipTextActive,
-                ]}>
-                  {cat.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.chipRow}
+              showsVerticalScrollIndicator={false}
+            >
+              {CATEGORIES.map((cat, idx) => (
+                <TouchableOpacity
+                  key={cat.value}
+                  style={[
+                    styles.chip,
+                    selectedCategory === cat.value && styles.chipActive,
+                    idx === CATEGORIES.length - 1 && { marginRight: 0 },
+                  ]}
+                  onPress={() => {
+                    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+                    setSelectedCategory(cat.value);
+                  }}
+                >
+                  <Text style={[
+                    styles.chipText,
+                    selectedCategory === cat.value && styles.chipTextActive,
+                  ]}>
+                    {cat.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
           {loading ? (
             <ActivityIndicator size="large" color="#5ccbffff" style={{ marginTop: 40 }} />
@@ -170,7 +174,8 @@ export default function HomeScreen() {
                   startAt={item.startAt}
                   endAt={item.endAt}
                   type={item.type}
-                  onDeleted={fetchNews} // <-- pass reload callback
+                  onDeleted={fetchNews}
+                  role={user?.user?.role}
                 />
               )}
               showsVerticalScrollIndicator={false}

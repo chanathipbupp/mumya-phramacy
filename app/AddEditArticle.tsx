@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, StyleSheet, Button, ScrollView, Platform, Pressable } from 'react-native';
-import { createArticle, updateArticle, getArticles, uploadFile, getArticleBySlug } from '../composables/fetchAPI';
+import { createArticle, updateArticle, getArticles, uploadFile, getArticleBySlug, getUserProfile } from '../composables/fetchAPI';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { UserProvider,useUser } from '../components/UserProvider';
 
 const defaultArticle = {
   title: '',
@@ -28,13 +29,14 @@ export default function AddEditArticle() {
   const [uploading, setUploading] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(false);
   const [showPublishDatePicker, setShowPublishDatePicker] = useState(false);
+  const [user, setUser] = useState<{ role?: string } | null>(null);
 
   // Tag input state
   const [tagInput, setTagInput] = useState('');
   const tagInputRef = useRef<any>(null);
-
   // Add this state at the top
   const [originalCustomSlug, setOriginalCustomSlug] = useState<string | undefined>('');
+
 
   // Load article for edit
   useEffect(() => {
@@ -56,13 +58,29 @@ export default function AddEditArticle() {
             setOriginalCustomSlug(article.customSlug); // <-- store original
           }
           console.log('Loaded article for edit:', article);
-        } catch {}
+        } catch { }
         setLoading(false);
       })();
     } else {
       setForm({ ...defaultArticle });
     }
   }, [mode, slug]);
+
+  useEffect(() => {
+    // Fetch user info on mount
+    console.log("fetching user in add edit article")
+    const fetchUser = async () => {
+      try {
+        const u = await getUserProfile();
+        console.log(u, "fetched user in add edit article")
+        setUser(u);
+      } catch (e) {
+        setUser(null);
+      }
+    };
+    fetchUser();
+    console.log(user, "user in add edit article")
+  }, []);
 
   const handleChange = (key: string, value: any) => {
     setForm(f => ({ ...f, [key]: value }));
@@ -112,122 +130,140 @@ export default function AddEditArticle() {
   };
 
   // --- Validation ---
-const validateForm = () => {
-  const errors: string[] = [];
-  if (!form.title || !form.title.trim()) errors.push('หัวข้อ');
-  // Fix: check content string inside object
-  const contentString =
-    typeof form.content === 'object' && form.content !== null
-      ? form.content.content
-      : form.content;
-  if (!contentString  || !contentString) errors.push('เนื้อหา');
-  if (!form.status || !form.status.trim()) errors.push('สถานะ');
-  return errors;
-};
+  const validateForm = () => {
+    const errors: string[] = [];
+    if (!form.title || !form.title.trim()) errors.push('หัวข้อ');
+    // Fix: check content string inside object
+    const contentString =
+      typeof form.content === 'object' && form.content !== null
+        ? form.content.content
+        : form.content;
+    if (!contentString || !contentString) errors.push('เนื้อหา');
+    if (!form.status || !form.status.trim()) errors.push('สถานะ');
+    return errors;
+  };
 
   // --- Submit ---
   const handleSubmit = async () => {
-  const errors = validateForm();
-  if (errors.length > 0) {
-    if (Platform.OS === 'web') {
-      window.alert(`กรุณากรอก: ${errors.join(', ')}`);
-    } else {
-      // @ts-ignore
-      Alert.alert('กรุณากรอกข้อมูลให้ครบถ้วน', `กรุณากรอก: ${errors.join(', ')}`);
+    const errors = validateForm();
+    if (errors.length > 0) {
+      if (Platform.OS === 'web') {
+        window.alert(`กรุณากรอก: ${errors.join(', ')}`);
+      } else {
+        // @ts-ignore
+        Alert.alert('กรุณากรอกข้อมูลให้ครบถ้วน', `กรุณากรอก: ${errors.join(', ')}`);
+      }
+      return;
     }
-    return;
-  }
 
-  // Hardcode activeFrom and activeTo
-  const now = new Date();
-  const twoYearsFromNow = new Date();
-  twoYearsFromNow.setFullYear(now.getFullYear() + 2);
+    // Hardcode activeFrom and activeTo
+    const now = new Date();
+    const twoYearsFromNow = new Date();
+    twoYearsFromNow.setFullYear(now.getFullYear() + 2);
 
-  const submitData = {
-    ...form,
-    activeFrom: now.toISOString(),
-    activeTo: twoYearsFromNow.toISOString(),
+    const submitData = {
+      ...form,
+      activeFrom: now.toISOString(),
+      activeTo: twoYearsFromNow.toISOString(),
+    };
+
+    setLoading(true);
+    try {
+      if (mode === 'add') {
+        // Build payload in the required format
+        const createBody = {
+          title: form.title,
+          content: form.content, // <--- use directly
+          status: form.status || "published",
+          tags: Array.isArray(form.tags)
+            ? form.tags.filter(Boolean)
+            : (typeof form.tags === 'string' ? form.tags.split(',').map(t => t.trim()).filter(Boolean) : []),
+          customSlug: form.customSlug || undefined,
+          coverImage: form.coverImage || "https://cdn.kasidate.me/images/White%20Red%20Yellow%20Minimalist%20Pill%20Medical%20Pharmacy%20Logo.png",
+          publishDate: form.publishDate || new Date().toISOString(),
+        };
+        console.log('Creating article with form data:', createBody);
+        const res = await createArticle(createBody);
+        if (Platform.OS === 'web') {
+          window.alert('เพิ่มบทความสำเร็จ');
+        } else {
+          // @ts-ignore
+          Alert.alert('สำเร็จ', 'เพิ่มบทความสำเร็จ');
+        }
+      } else if (mode === 'edit' && form._id) {
+        // Hardcode every value for debugging
+        const now = new Date();
+        const twoYearsFromNow = new Date();
+        twoYearsFromNow.setFullYear(now.getFullYear() + 2);
+
+        const hardcoded = {
+          _id: form._id,
+          title: form.title || "Mumya Pharmacy",
+          content: {
+            type: "paragraph",
+            version: 1,
+            content: form.content?.content
+          },
+          status: form.status || "published",
+          tags: form.tags.length > 0 ? form.tags : ["health", "wellness"],
+          coverImage: form.coverImage || "https://cdn.kasidate.me/images/White%20Red%20Yellow%20Minimalist%20Pill%20Medical%20Pharmacy%20Logo.png",
+          publishDate: form.publishDate || now.toISOString(),
+          activeFrom: now.toISOString(),
+          activeTo: twoYearsFromNow.toISOString(),
+          isOptional: [],
+        };
+
+        // Conditionally add customSlug if changed
+        if (form.customSlug !== originalCustomSlug) {
+          hardcoded.customSlug = form.customSlug;
+        }
+
+        console.log("Updating article with hardcoded data:", hardcoded);
+        await updateArticle(form._id, hardcoded);
+
+        if (Platform.OS === 'web') {
+          window.alert('อัปเดตบทความสำเร็จ');
+        } else {
+          // @ts-ignore
+          Alert.alert('สำเร็จ', 'อัปเดตบทความสำเร็จ');
+        }
+      }
+      router.back();
+    } catch (error: any) {
+      if (Platform.OS === 'web') {
+        window.alert(error?.message || 'ไม่สามารถบันทึกข้อมูลได้');
+      } else {
+        // @ts-ignore
+        Alert.alert(
+          'เกิดข้อผิดพลาด',
+          error?.error?.details?.[0]?.message ||
+          error?.message ||
+          'ไม่สามารถบันทึกข้อมูลได้'
+        );
+      }
+    }
+    setLoading(false);
   };
 
-  setLoading(true);
-  try {
-    if (mode === 'add') {
-      // Build payload in the required format
-      const createBody = {
-        title: form.title,
-        content: form.content, // <--- use directly
-        status: form.status || "published",
-        tags: Array.isArray(form.tags)
-          ? form.tags.filter(Boolean)
-          : (typeof form.tags === 'string' ? form.tags.split(',').map(t => t.trim()).filter(Boolean) : []),
-        customSlug: form.customSlug || undefined,
-        coverImage: form.coverImage || "https://cdn.kasidate.me/images/White%20Red%20Yellow%20Minimalist%20Pill%20Medical%20Pharmacy%20Logo.png",
-        publishDate: form.publishDate || new Date().toISOString(),
-      };
-      console.log('Creating article with form data:', createBody);
-      const res = await createArticle(createBody);
-      if (Platform.OS === 'web') {
-        window.alert('เพิ่มบทความสำเร็จ');
-      } else {
-        // @ts-ignore
-        Alert.alert('สำเร็จ', 'เพิ่มบทความสำเร็จ');
-      }
-    } else if (mode === 'edit' && form._id) {
-      // Hardcode every value for debugging
-      const now = new Date();
-      const twoYearsFromNow = new Date();
-      twoYearsFromNow.setFullYear(now.getFullYear() + 2);
-
-      const hardcoded = {
-        _id: form._id,
-        title: form.title || "Mumya Pharmacy",
-        content: {
-            type: "paragraph", 
-            version: 1,
-            content: form.content?.content 
-          },
-        status: form.status || "published",
-        tags: form.tags.length > 0 ? form.tags : ["health", "wellness"],
-        coverImage: form.coverImage ||"https://cdn.kasidate.me/images/White%20Red%20Yellow%20Minimalist%20Pill%20Medical%20Pharmacy%20Logo.png",
-        publishDate: form.publishDate ||now.toISOString(),
-        activeFrom: now.toISOString(),
-        activeTo: twoYearsFromNow.toISOString(),
-        isOptional: [],
-      };
-
-      // Conditionally add customSlug if changed
-      if (form.customSlug !== originalCustomSlug) {
-        hardcoded.customSlug = form.customSlug;
-      }
-
-      console.log("Updating article with hardcoded data:", hardcoded);
-      await updateArticle(form._id, hardcoded);
-
-      if (Platform.OS === 'web') {
-        window.alert('อัปเดตบทความสำเร็จ');
-      } else {
-        // @ts-ignore
-        Alert.alert('สำเร็จ', 'อัปเดตบทความสำเร็จ');
-      }
+  // Block if not admin
+  useEffect(() => {
+    if (user && user.role !== 'admin') {
+      router.replace('/');
     }
-    router.back();
-  } catch (error: any) {
-    if (Platform.OS === 'web') {
-      window.alert(error?.message || 'ไม่สามารถบันทึกข้อมูลได้');
-    } else {
-      // @ts-ignore
-      Alert.alert(
-        'เกิดข้อผิดพลาด',
-        error?.error?.details?.[0]?.message ||
-        error?.message ||
-        'ไม่สามารถบันทึกข้อมูลได้'
-      );
-    }
+  }, [user, router]);
+
+  if (user && user.role !== 'admin') {
+    return (
+      <View style={styles.bg}>
+        <Text style={{ textAlign: 'center', marginTop: 48, fontSize: 20, color: 'red' }}>
+          คุณไม่มีสิทธิ์เข้าถึงหน้านี้
+        </Text>
+      </View>
+    );
   }
-  setLoading(false);
-};
 
   return (
+    
     <View style={styles.bg}>
       <ScrollView>
         <View style={styles.card}>
@@ -289,7 +325,7 @@ const validateForm = () => {
                     ))}
                   </View>
                 </View>
-                
+
                 {/* Title */}
                 <View style={styles.topColMedium}>
                   <Text style={styles.label}>
@@ -303,7 +339,7 @@ const validateForm = () => {
                     placeholderTextColor="#aaa"
                   />
                 </View>
-                
+
               </View>
 
               {/* Content */}
@@ -350,7 +386,7 @@ const validateForm = () => {
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     {Platform.OS === 'web' ? (
                       <div
-                        style={{ position: 'relative',  display: 'flex', alignItems: 'center' }}
+                        style={{ position: 'relative', display: 'flex', alignItems: 'center' }}
                         onMouseEnter={() => setShowImagePreview(true)}
                         onMouseLeave={() => setShowImagePreview(false)}
                       >

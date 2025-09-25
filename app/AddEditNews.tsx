@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { KeyboardAvoidingView, View, Text, TextInput, StyleSheet, Button, Alert, ScrollView, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { createNews, updateNews, getNewsBySlug, uploadFile } from '../composables/fetchAPI';
+import { createNews, updateNews, getNewsBySlug, uploadFile, getUserProfile } from '../composables/fetchAPI';
 import { CheckBox } from 'react-native'; // Consider using a community checkbox for better support
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
@@ -53,13 +53,25 @@ export default function AddEditNews() {
   const [form, setForm] = useState<NewsForm>({ ...defaultNews });
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [user, setUser] = useState<{ role?: string } | null>(null);
 
   // Add state for date pickers
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(false);
 
-
+  useEffect(() => {
+    // Fetch user info on mount
+    const fetchUser = async () => {
+      try {
+        const u = await getUserProfile(); // Implement this to return user object
+        setUser(u);
+      } catch (e) {
+        setUser(null);
+      }
+    };
+    fetchUser();
+  }, []);
 
   const validateForm = () => {
     const errors: string[] = [];
@@ -204,6 +216,22 @@ export default function AddEditNews() {
     setUploading(false);
   };
 
+    // Block if not admin
+    useEffect(() => {
+      if (user && user.role !== 'admin') {
+        router.replace('/');
+      }
+    }, [user, router]);
+  
+    if (user && user.role !== 'admin') {
+      return (
+        <View style={styles.bg}>
+          <Text style={{ textAlign: 'center', marginTop: 48, fontSize: 20, color: 'red' }}>
+            คุณไม่มีสิทธิ์เข้าถึงหน้านี้
+          </Text>
+        </View>
+      );
+    }
   return (
     <View style={styles.bg}>
       <ScrollView>

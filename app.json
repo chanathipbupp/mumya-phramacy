@@ -16,12 +16,13 @@
         "foregroundImage": "./assets/images/Mumya_logo.jpg",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.chanathip.bupp.mumyapharmacyapp"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/Mumya_logo.jpg"
+      "favicon": "http://72.60.197.70:3000/api/files/view/logo.png"
     },
     "plugins": [
       "expo-router",
@@ -37,6 +38,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "2c345aad-d9cb-4cf2-81a5-5778ff81e935"
+      }
     }
   }
 }
