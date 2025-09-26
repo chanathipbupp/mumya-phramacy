@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import { Platform, StyleSheet, View, Text, TouchableOpacity, TextInput, Picker, FlatList, ScrollView } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 // import history from '../../composables/history.json';
-import { getMyPointBalance, getMyPointLedger, getUserList, adjustUserPointAdmin, getLatestPointLedger } from '../../composables/fetchAPI';
+import { getMyPointBalance, getMyPointLedger, getUserList, adjustUserPointAdmin, getLatestPointLedger, getUserPointBalanceByUid } from '../../composables/fetchAPI';
 import { useUser } from '../../components/UserProvider';
 
 const mockUsers = [
@@ -75,6 +75,8 @@ export default function TabTwoScreen() {
   const [adminHistory, setAdminHistory] = useState<any[]>([]);
   const [adminHistoryLoading, setAdminHistoryLoading] = useState(false);
   const user = useUser();
+  const [toggleEyes, setToggleEyes] = useState<{ [key: string]: boolean }>({}); // Track toggle state for each user
+  const [userBalances, setUserBalances] = useState<{ [key: string]: number }>({}); // Store balances for each user
 
   console.log('user in pointReward', user);
   // Admin action states
@@ -126,9 +128,8 @@ export default function TabTwoScreen() {
         .catch(() => setAdminHistory([]))
         .finally(() => setAdminHistoryLoading(false));
     }
-    console.log('adminHistory', adminHistory);
   }, [adminMode, adminTab]);
-
+  console.log('adminHistory', adminHistory);
   // New function for confirm button
   const handleConfirmAdjustPoint = async () => {
     //    console.log('Entered phone:', phone.trim());
@@ -168,8 +169,28 @@ export default function TabTwoScreen() {
       alert('เกิดข้อผิดพลาด: ' + (err.message || ''));
     }
   };
+  const handleUserClick = (selectedPhone: string) => {
+    setPhone(selectedPhone); // Set the phone number field
+  };
+  const handleToggleEyes = async (userId: string) => {
+    setToggleEyes(prev => ({
+      ...prev,
+      [userId]: !prev[userId], // Toggle the state
+    }));
 
-
+    if (!toggleEyes[userId]) {
+      // If toggling on, fetch the balance
+      try {
+        const balance = await getUserPointBalanceByUid(userId);
+        setUserBalances(prev => ({
+          ...prev,
+          [userId]: balance?.balance || 0, // Store the balance
+        }));
+      } catch (error) {
+        console.error('Failed to fetch user balance:', error);
+      }
+    }
+  };
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
 
@@ -177,7 +198,7 @@ export default function TabTwoScreen() {
         {/* Header with AdminMode button */}
         <View style={styles.headerRow}>
           {/* <Text style={styles.header}>แต้มของฉัน</Text> */}
-          {user?.user?.role==="admin" && (
+          {user?.user?.role === "admin" && (
             <TouchableOpacity
               style={styles.adminBtn}
               onPress={() => setAdminMode(m => !m)}
@@ -254,7 +275,10 @@ export default function TabTwoScreen() {
                   <TextInput
                     style={styles.input}
                     value={phone}
-                    onChangeText={setPhone}
+                    onChangeText={val => {
+                      setPhone(val);
+                      setAdminTab('dashboard'); // Switch to dashboard tab
+                    }}
                     placeholder="กรอกเบอร์โทร"
                     keyboardType="phone-pad"
                   />
@@ -296,6 +320,7 @@ export default function TabTwoScreen() {
                   onPress={() => {
                     setActionType('credit');
                     setPhone('');
+                    setAdminTab('history'); // Switch to history tab
                     setNote(null);
                   }}
                 >                <Text style={styles.clearBtnText}>เคลียร์</Text>
@@ -337,6 +362,8 @@ export default function TabTwoScreen() {
                   <Text style={[styles.tableCell, { flex: 2, fontWeight: 'bold' }]}>ชื่อ</Text>
                   <Text style={[styles.tableCell, { flex: 2, fontWeight: 'bold' }]}>เบอร์โทร</Text>
                   <Text style={[styles.tableCell, { flex: 2, fontWeight: 'bold' }]}>อีเมล</Text>
+                  <Text style={[styles.tableCell, { flex: 2, fontWeight: 'bold' }]}>แต้มคงเหลือ</Text>
+
                 </View>
                 {userListLoading ? (
                   <Text style={{ padding: 8 }}>Loading...</Text>
@@ -349,22 +376,49 @@ export default function TabTwoScreen() {
                       phone.trim() === '' ? true : user.phone?.includes(phone.trim())
                     )
                     .map(user => (
-                      <View key={user.id} style={styles.tableRow}>
-                        <Text style={[styles.tableCell, { flex: 2 }]}>{user.name || '-'}</Text>
-                        <View style={{ flex: 2, flexDirection: 'row', alignItems: 'center' }}>
+                      <TouchableOpacity
+                        key={user.id}
+                        onPress={() => handleUserClick(user.phone)} // Set phone number on click
+                      >
+                        <View key={user.id} style={styles.tableRow}>
+                          <Text style={[styles.tableCell, { flex: 2 }]}>{user.name || '-'}</Text>
+                          <View style={{ flex: 2, flexDirection: 'row', alignItems: 'center' }}>
 
-                          {user.phone && (
+                            {user.phone && (
+                              <TouchableOpacity
+                                onPress={() => Clipboard.setStringAsync(user.phone)}
+                                style={{ marginLeft: 8, padding: 2 }}
+                              >
+                                <Text style={{ color: '#0a65aeff', fontSize: 14 }}>📋</Text>
+                              </TouchableOpacity>
+                            )}
+                            <Text style={styles.tableCell}>{user.phone || '-'}</Text>
+                          </View>
+                          <Text style={[styles.tableCell, { flex: 2 }]}>{user.email || '-'}</Text>
+                          <View style={{ flex: 2, flexDirection: 'row', alignItems: 'center' }}>
                             <TouchableOpacity
-                              onPress={() => Clipboard.setStringAsync(user.phone)}
+                              onPress={() => handleToggleEyes(user.id)} // Toggle eyes
                               style={{ marginLeft: 8, padding: 2 }}
                             >
-                              <Text style={{ color: '#0a65aeff', fontSize: 14 }}>📋</Text>
+                              <Image
+                                source={
+                                  toggleEyes[user.id]
+                                    ? require('../../assets/images/eye.png') // Correct relative path
+                                    : require('../../assets/images/visible.png') // Correct relative path
+                                }
+                                style={{ width: 24, height: 24 }} // Adjust size as needed
+                              />
                             </TouchableOpacity>
-                          )}
-                          <Text style={styles.tableCell}>{user.phone || '-'}</Text>
-                        </View>
-                        <Text style={[styles.tableCell, { flex: 2 }]}>{user.email || '-'}</Text>
-                      </View>
+                            {toggleEyes[user.id] && (
+                              <View>
+                              <Text style={[styles.tableCell, { flex: 1 }]}>
+                                {userBalances[user.id] !== undefined ? `${userBalances[user.id]} P` : 'Loading...'}
+                              </Text>
+                              </View>
+                            )}
+                          </View>                        </View>
+                      </TouchableOpacity>
+
                     ))
                 )}
               </View>
@@ -389,7 +443,7 @@ export default function TabTwoScreen() {
                       <Text style={[styles.tableCell, { flex: 1 }]}>{item.amount}</Text>
                       <Text style={[styles.tableCell, { flex: 2 }]}>{item.user?.phone || '-'}</Text>
                       <Text style={[styles.tableCell, { flex: 2 }]}>{item.user?.name || '-'}</Text>
-                      <Text style={[styles.tableCell, { flex: 3 }]}>{item.description || item.refType || '-'}</Text>
+                      <Text style={[styles.tableCell, { flex: 3 }]}>{item.reason || '-'}</Text>
                     </View>
                   ))
                 )}

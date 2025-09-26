@@ -709,3 +709,37 @@ export async function uploadCustomFile(file: File): Promise<any> {
   }
   return res.json();
 }
+
+
+export async function dailyLogin(): Promise<any> {
+  const url = `${API_URL}/points/me/ledger/daily-login`;
+  const authToken = await getAuthToken(); // <-- await here!
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to perform daily login');
+  }
+  return res.json();
+}
+
+export async function getDailyLoginStatus(): Promise<any> {
+  const url = `${API_URL}/points/me/ledger/daily-login/status`;
+  const authToken = await getAuthToken(); // <-- await here!
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to fetch daily login status');
+  }
+  return res.json();
+}
+

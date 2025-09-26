@@ -11,7 +11,9 @@ const DailyRewardPopup: React.FC<DailyRewardPopupProps> = ({ visible, onClaim })
   <Modal transparent visible={visible} animationType="fade">
     <View style={styles.overlay}>
       <View style={styles.popup}>
-        <Text style={styles.title}>🎁 Daily Reward!</Text>
+        {/* Reward Icon */}
+        <Text style={styles.icon}>🎁</Text>
+        <Text style={styles.title}>Daily Reward!</Text>
         <Text style={styles.message}>Claim your 10 points for today!</Text>
         <TouchableOpacity style={styles.button} onPress={onClaim}>
           <Text style={styles.buttonText}>Claim Reward</Text>
@@ -36,21 +38,28 @@ const styles = StyleSheet.create({
     elevation: 4,
     minWidth: 280,
   },
+  icon: {
+    fontSize: 64, // Adjust size to resemble the previous image
+    marginBottom: 12,
+  },
   title: {
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 12,
+    color: '#333',
   },
   message: {
     fontSize: 16,
     marginBottom: 24,
     textAlign: 'center',
+    color: '#555',
   },
   button: {
     backgroundColor: '#4CAF50',
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 32,
+    elevation: 2,
   },
   buttonText: {
     color: '#fff',

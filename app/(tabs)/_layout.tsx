@@ -12,13 +12,28 @@ import ProfileTabIcon from '../components/ProfileTabIcon';
 import { useRouter } from 'expo-router';
 import { UserProvider, useUser } from '../../components/UserProvider';
 import DailyRewardPopup from '../../components/DailyRewardPopup'; // Adjust path if needed
+import { getDailyLoginStatus, dailyLogin,getUserProfile } from '../../composables/fetchAPI'; // Import endpoints
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const router = useRouter();
-  const user = useUser(); // Get user from your hook
+  const [user, setUser] = useState()
   const [showReward, setShowReward] = useState(false);
-
+  useEffect(() => {
+    // Fetch user info on mount
+    console.log("fetching user in add edit article")
+    const fetchUser = async () => {
+      try {
+        const u = await getUserProfile();
+        console.log("fetched user in hp", u)
+        setUser(u);
+      } catch (e) {
+        setUser(null);
+      }
+    };
+    fetchUser();
+    console.log(user, "user in hp")
+  }, []);
   useEffect(() => {
     const checkToken = async () => {
       const token = await AsyncStorage.getItem('accessToken');
@@ -31,22 +46,37 @@ export default function TabLayout() {
   }, []);
 
   useEffect(() => {
-    const checkDailyReward = async () => {
-      const today = new Date().toISOString().slice(0, 10);
-      const lastClaimed = await AsyncStorage.getItem('dailyRewardDate');
-      // Only show popup if user exists and role is not admin
-      if (user && user.role !== 'admin' && lastClaimed !== today) {
-        setShowReward(true);
+    const checkDailyRewardStatus = async () => {
+      try {
+        const statusResponse = await getDailyLoginStatus();
+        console.log('Daily Login Status:', statusResponse, user?.role); // Debugging line
+        if (statusResponse.status === "available" && user?.role !== "admin") {
+          setShowReward(true);
+        }
+        
+      } catch (error) {
+        console.error('Failed to fetch daily login status:', error);
       }
     };
-    checkDailyReward();
+    checkDailyRewardStatus();
   }, [user]); // Re-run when user changes
 
-  const handleClaimReward = async () => {
-    const today = new Date().toISOString().slice(0, 10);
-    await AsyncStorage.setItem('dailyRewardDate', today);
-    // TODO: Add logic to give user 10 points here
-    setShowReward(false);
+    const handleClaimReward = async () => {
+    try {
+      const res = await dailyLogin(); // Call the daily login endpoint
+      console.log('Daily Login Response:', res); // Debugging line
+      setShowReward(false);
+
+      // Show success message
+      if (Platform.OS === 'web') {
+        window.alert(`You got ${res.balance} points!`);
+      } else {
+        // @ts-ignore
+        Alert.alert('Success', `You got ${res.balance} points!`);
+      }
+    } catch (error) {
+      console.error('Failed to claim daily reward:', error);
+    }
   };
 
   return (
@@ -97,8 +127,7 @@ export default function TabLayout() {
             tabBarLabel: 'โปรไฟล์',
           }}
         />
-
       </Tabs>
-      </UserProvider>
+    </UserProvider>
   );
 }
