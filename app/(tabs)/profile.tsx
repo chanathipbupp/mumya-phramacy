@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Image } from 'expo-image';
-import { StyleSheet, View, Text, TouchableOpacity, Alert, Platform, Modal } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Alert, Platform, Modal,TextInput } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { logout, getMyPointBalance, uploadCustomFile } from '../../composables/fetchAPI';
+import { logout, getMyPointBalance, uploadCustomFile,updateUserProfile } from '../../composables/fetchAPI';
 import { useRouter } from 'expo-router';
 import { useUser } from '../../components/UserProvider';
 import * as ImagePicker from 'expo-image-picker';
@@ -18,6 +18,13 @@ export default function ProfileScreen() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
+  const [showEditModal, setShowEditModal] = useState(false); // State for showing the edit modal
+  const [updatedUser, setUpdatedUser] = useState({
+    name: user?.name || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
+  });
+
   useEffect(() => {
     getMyPointBalance()
       .then(balanceData => setPoint(balanceData))
@@ -32,6 +39,30 @@ export default function ProfileScreen() {
       router.replace('/login');
     } catch (error) {
       Alert.alert('Logout Failed', error.message || 'Please try again.');
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      const res = await updateUserProfile(updatedUser); // Call the update endpoint
+      console.log('Update profile response:', res);
+      if (Platform.OS === 'web') {
+        window.alert('สำเร็จ: ข้อมูลผู้ใช้ถูกอัปเดตเรียบร้อยแล้ว');
+      } else {
+        Alert.alert('สำเร็จ', 'ข้อมูลผู้ใช้ถูกอัปเดตเรียบร้อยแล้ว');
+      }
+      setShowEditModal(false); // Close the modal
+    } catch (error) {
+      console.error('Update profile error:', error.message);
+      let errorMessage = 'เกิดข้อผิดพลาด: ไม่สามารถอัปเดตข้อมูลผู้ใช้ได้';
+      if (error.message) {
+        errorMessage = `เกิดข้อผิดพลาด: ${error.message}`;
+      }
+      if (Platform.OS === 'web') {
+        window.alert(errorMessage);
+      } else {
+        Alert.alert('เกิดข้อผิดพลาด', errorMessage);
+      }
     }
   };
 
@@ -54,13 +85,20 @@ export default function ProfileScreen() {
     try {
       const res = await uploadCustomFile(selectedFile);
       console.log('Banner upload response:', res);
-      Alert.alert('สำเร็จ', 'อัปโหลด Banner สำเร็จ');
+      if (Platform.OS === 'web') {
+        window.alert('สำเร็จ: อัปโหลด Banner สำเร็จ');
+      } else {
+        Alert.alert('สำเร็จ', 'อัปโหลด Banner สำเร็จ');
+      }
       setShowBannerModal(false);
       setSelectedFile(null);
       setPreviewUrl(null);
-      // Optionally update banner here
     } catch (err) {
-      Alert.alert('เกิดข้อผิดพลาด', 'อัปโหลด Banner ไม่สำเร็จ');
+      if (Platform.OS === 'web') {
+        window.alert('เกิดข้อผิดพลาด: อัปโหลด Banner ไม่สำเร็จ');
+      } else {
+        Alert.alert('เกิดข้อผิดพลาด', 'อัปโหลด Banner ไม่สำเร็จ');
+      }
     }
     setUploading(false);
   };
@@ -121,7 +159,14 @@ export default function ProfileScreen() {
       </View>
     );
   }
-
+const handleOpenEditModal = () => {
+  setUpdatedUser({
+    name: user?.name || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
+  });
+  setShowEditModal(true);
+};
   return (
     <View style={styles.container}>
       <View style={styles.avatarBox}>
@@ -141,12 +186,20 @@ export default function ProfileScreen() {
           </View>
         )}
       </View>
+      
       <View style={styles.infoBox}>
         <Text style={styles.name}>{user.name}</Text>
         <Text style={styles.email}>{user.email}</Text>
         <Text style={styles.phone}>{user.phone}</Text>
-      </View>
+        {/* Edit Profile Button */}
       <TouchableOpacity
+        style={styles.editProfileBtn}
+        onPress={handleOpenEditModal}
+        activeOpacity={0.8}
+      >
+        <Text style={{ color: '#00796B', fontWeight: 'bold' }}>แก้ไขโปรไฟล์</Text>
+      </TouchableOpacity>
+       <TouchableOpacity
         style={styles.pointBtn}
         onPress={() => router.push('/pointReward')}
         activeOpacity={0.8}
@@ -155,17 +208,71 @@ export default function ProfileScreen() {
           คะแนนสะสม: {point !== null ? point.balance : '...'}
         </Text>
       </TouchableOpacity>
+      </View>
+
+     
+
+      
+ {/* Edit Profile Modal */}
+      <Modal
+        visible={showEditModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowEditModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 12 }}>แก้ไขโปรไฟล์</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="ชื่อ"
+              value={updatedUser.name}
+              onChangeText={text => setUpdatedUser({ ...updatedUser, name: text })}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="อีเมล"
+              value={updatedUser.email}
+              onChangeText={text => setUpdatedUser({ ...updatedUser, email: text })}
+              keyboardType="email-address"
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="เบอร์โทร"
+              value={updatedUser.phone}
+              onChangeText={text => setUpdatedUser({ ...updatedUser, phone: text })}
+              keyboardType="phone-pad"
+            />
+            <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
+              <TouchableOpacity
+                style={styles.saveBtn}
+                onPress={handleSaveProfile}
+              >
+                <Text style={{ color: '#fff', fontWeight: 'bold' }}>บันทึก</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.cancelBtn}
+                onPress={() => setShowEditModal(false)}
+              >
+                <Text style={{ color: '#333', fontWeight: 'bold' }}>ยกเลิก</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+
       {/* Banner Upload Button */}
 
       {user?.role?.toLowerCase() === 'admin' && (
-      <TouchableOpacity
-        style={styles.bannerBtn}
-        onPress={() => setShowBannerModal(true)}
-        activeOpacity={0.8}
-      >
-        <Text style={{ color: '#00796B', fontWeight: 'bold' }}>เปลี่ยนรูป Banner</Text>
-      </TouchableOpacity>
-)}
+        <TouchableOpacity
+          style={styles.bannerBtn}
+          onPress={() => setShowBannerModal(true)}
+          activeOpacity={0.8}
+        >
+          <Text style={{ color: '#00796B', fontWeight: 'bold' }}>เปลี่ยนรูป Banner</Text>
+        </TouchableOpacity>
+      )}
 
 
       {/* Banner Upload Modal (Web only) */}
@@ -350,6 +457,39 @@ const styles = StyleSheet.create({
     boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
     display: 'flex',
     flexDirection: 'column',
+  },
+    editProfileBtn: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    marginBottom: 16,
+    elevation: 2,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#00796B',
+  },
+    input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+    width: '100%',
+  },
+  saveBtn: {
+    backgroundColor: '#00796B',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+  },
+  cancelBtn: {
+    backgroundColor: '#eee',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    alignItems: 'center',
   },
 });
 

@@ -132,16 +132,7 @@ export default function TabTwoScreen() {
   console.log('adminHistory', adminHistory);
   // New function for confirm button
   const handleConfirmAdjustPoint = async () => {
-    //    console.log('Entered phone:', phone.trim());
-    // console.log('UserList phones:', userList.map(u => `[${u.phone}]`).join(', '));
-
-    // Find user by phone (exact match)
     const selectedUser = userList.find(u => u.phone?.trim() === phone.trim());
-    console.log('Selected user:', selectedUser.id);
-    console.log(new Date(Date.now() + 60000).toISOString().slice(0, 10)); // Output: 2025-09-18
-    console.log('Action Type:', actionType);
-    console.log('Note:', note);
-    console.log('Amount:', note?.amount);
     if (!selectedUser) {
       alert('ไม่พบผู้ใช้ที่มีเบอร์นี้');
       return;
@@ -158,15 +149,17 @@ export default function TabTwoScreen() {
         idempotencyKey: `${selectedUser.id}-${Date.now()}`,
         expiresAt: new Date(Date.now() + 60000).toISOString().slice(0, 10),
         note: note?.remark || '',
-        // refType: 'manual',
-        // refId: '',
       });
       alert('ปรับแต้มสำเร็จ');
       setNote(null);
       setPhone('');
-      // Optionally refresh user list or point balance here
     } catch (err: any) {
-      alert('เกิดข้อผิดพลาด: ' + (err.message || ''));
+      const errorMessage = err.message || '';
+      if (errorMessage.includes('Insufficient points')) {
+        alert('แต้มไม่เพียงพอ'); // Show the message in Thai
+      } else {
+        alert('เกิดข้อผิดพลาด: ' + errorMessage);
+      }
     }
   };
   const handleUserClick = (selectedPhone: string) => {

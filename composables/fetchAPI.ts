@@ -743,3 +743,23 @@ export async function getDailyLoginStatus(): Promise<any> {
   return res.json();
 }
 
+export async function updateUserProfile(data: {
+  name?: string;
+  email?: string;
+  phone?: string;
+}): Promise<any> {
+  const url = `${API_URL}/users/me`;
+  const authToken = await getAuthToken(); // Retrieve the token from storage
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to update user profile');
+  }
+  return res.json();
+}
