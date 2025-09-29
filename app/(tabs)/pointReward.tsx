@@ -224,7 +224,7 @@ export default function TabTwoScreen() {
                   const isDebit = item.action === 'debit';
                   return (
                     <View key={item.id} style={styles.historyItem}>
-                      <Text style={styles.historyDesc}>{item.description || item.refType}</Text>
+                      <Text style={styles.historyDesc}>{item.reason || item.refType}</Text>
                       <Text
                         style={[
                           styles.historyPoints,
