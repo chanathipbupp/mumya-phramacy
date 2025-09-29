@@ -119,7 +119,7 @@ export default function AddEditNews() {
         setLoading(true);
         try {
           const data = await getNewsBySlug(slug);
-          console.log('Fetched news data:', data);
+          //console.log('Fetched news data:', data);
           setForm({
             ...defaultNews,
             ...data,
@@ -145,7 +145,7 @@ export default function AddEditNews() {
 
   const handleSubmit = async () => {
     const errors = validateForm();
-    console.log('Validation errors:', errors); // <--- Add this line
+    //console.log('Validation errors:', errors); // <--- Add this line
     if (errors.length > 0) {
       if (Platform.OS === 'web') {
         window.alert(`กรุณากรอก: ${errors.join(', ')}`);
@@ -158,7 +158,7 @@ export default function AddEditNews() {
     try {
       if (mode === 'add') {
         // Hardcoded payload for add mode
-        console.log('Creating news with form data:', form);
+        //console.log('Creating news with form data:', form);
         const createBody = {
           title: form.title,
           message: form.message,
@@ -181,7 +181,7 @@ export default function AddEditNews() {
           bannerStyle: "banner"
         };
         const res = await createNews(createBody);
-        console.log('Created news:', res);
+        //console.log('Created news:', res);
         Alert.alert('สำเร็จ', 'เพิ่มข่าวสารสำเร็จ');
       } else if (mode === 'edit' && form._id) {
         await updateNews(form._id, form);

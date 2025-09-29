@@ -13,7 +13,7 @@ const handleApiError = async (response: Response, defaultMessage: string) => {
 
   try {
     const errorData = await response.json();
-    console.log("Error: ", errorData);
+    //console.log("Error: ", errorData);
     if (errorData.message) {
       errorMessage = errorData.message;
     }
@@ -32,7 +32,7 @@ const handleApiError = async (response: Response, defaultMessage: string) => {
 export async function getUserProfile(): Promise<any> {
   const url = `${API_URL}/users/me`;
   const authToken = await getAuthToken(); // <-- await here!
-  console.log('Auth Token in getUserProfile:', authToken); // Debugging line
+  //console.log('Auth Token in getUserProfile:', authToken); // Debugging line
   const res = await fetch(url, {
     method: 'GET',
     headers: {
@@ -703,7 +703,7 @@ export async function uploadCustomFile(file: File): Promise<any> {
     // Do not set Content-Type for FormData; browser/React Native will set it
     body: formData,
   });
-  console.log("Upload Custom File Response Status:", res); // Debugging line
+  //console.log("Upload Custom File Response Status:", res); // Debugging line
   if (!res.ok) {
     await handleApiError(res, 'Failed to upload custom file');
   }

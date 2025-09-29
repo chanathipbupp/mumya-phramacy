@@ -78,12 +78,12 @@ export default function TabTwoScreen() {
   const [toggleEyes, setToggleEyes] = useState<{ [key: string]: boolean }>({}); // Track toggle state for each user
   const [userBalances, setUserBalances] = useState<{ [key: string]: number }>({}); // Store balances for each user
 
-  console.log('user in pointReward', user);
+  //console.log('user in pointReward', user);
   // Admin action states
   const [actionType, setActionType] = useState<'credit' | 'debit'>('credit');
   const [phone, setPhone] = useState('');
-  console.log('point history', history);
-  console.log('point balance', point);
+  //console.log('point history', history);
+  //console.log('point balance', point);
 
 
   useEffect(() => {
@@ -118,7 +118,7 @@ export default function TabTwoScreen() {
         .finally(() => setUserListLoading(false));
     }
   }, [adminMode, adminTab]);
-  console.log('userList', userList);
+  //console.log('userList', userList);
 
   useEffect(() => {
     if (adminMode && adminTab === 'history') {
@@ -129,7 +129,7 @@ export default function TabTwoScreen() {
         .finally(() => setAdminHistoryLoading(false));
     }
   }, [adminMode, adminTab]);
-  console.log('adminHistory', adminHistory);
+  //console.log('adminHistory', adminHistory);
   // New function for confirm button
   const handleConfirmAdjustPoint = async () => {
     const selectedUser = userList.find(u => u.phone?.trim() === phone.trim());

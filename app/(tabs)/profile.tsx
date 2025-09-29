@@ -45,7 +45,7 @@ export default function ProfileScreen() {
   const handleSaveProfile = async () => {
     try {
       const res = await updateUserProfile(updatedUser); // Call the update endpoint
-      console.log('Update profile response:', res);
+      //console.log('Update profile response:', res);
       if (Platform.OS === 'web') {
         window.alert('สำเร็จ: ข้อมูลผู้ใช้ถูกอัปเดตเรียบร้อยแล้ว');
       } else {
@@ -84,7 +84,7 @@ export default function ProfileScreen() {
     setUploading(true);
     try {
       const res = await uploadCustomFile(selectedFile);
-      console.log('Banner upload response:', res);
+      //console.log('Banner upload response:', res);
       if (Platform.OS === 'web') {
         window.alert('สำเร็จ: อัปโหลด Banner สำเร็จ');
       } else {

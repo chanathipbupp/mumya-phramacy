@@ -39,7 +39,7 @@ export default function NewsDetail() {
   const router = useRouter();
   const [news, setNews] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-console.log(news);
+//console.log(news);
   useEffect(() => {
     if (!slug) return;
     setLoading(true);

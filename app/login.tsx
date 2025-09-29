@@ -98,7 +98,7 @@ export default function LoginScreen() {
         setLoading(false);
       }
     } catch (e: any) {
-      console.log("login error:", e);
+      //console.log("login error:", e);
       Toast.show({ text1: e.message || "Login ไม่สำเร็จ" });
       setLoading(false);
       setError(e.message);
@@ -112,7 +112,7 @@ export default function LoginScreen() {
     try {
       setLoading(true);
       const result = await promptAsync();
-      console.log("Google login result:", result.authentication?.accessToken);
+      //console.log("Google login result:", result.authentication?.accessToken);
 
       if (result.type === "success" && result.authentication?.accessToken) {
         const accessToken = result.authentication.accessToken;
@@ -148,7 +148,7 @@ export default function LoginScreen() {
         ...(name && { name }),
       });
 
-      console.log("Google login response:", res);
+      //console.log("Google login response:", res);
 
       if (res.accessToken) {
         await AsyncStorage.setItem("accessToken", res.accessToken);

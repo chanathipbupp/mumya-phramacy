@@ -16,7 +16,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       try {
         const profile = await getUserProfile();
         setUser(profile);
-        console.log('Fetched user profile:', profile);
+        //console.log('Fetched user profile:', profile);
       } catch (e) {
         setUser(null);
       } finally {
@@ -24,7 +24,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       }
     }
     fetchUser();
-    console.log('UserProvider mounted, fetching user...',user);
+    //console.log('UserProvider mounted, fetching user...',user);
   }, []);
 
   return (

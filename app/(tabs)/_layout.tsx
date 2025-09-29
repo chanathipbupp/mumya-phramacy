@@ -21,23 +21,23 @@ export default function TabLayout() {
   const [showReward, setShowReward] = useState(false);
   useEffect(() => {
     // Fetch user info on mount
-    console.log("fetching user in add edit article")
+    //console.log("fetching user in add edit article")
     const fetchUser = async () => {
       try {
         const u = await getUserProfile();
-        console.log("fetched user in hp", u)
+        //console.log("fetched user in hp", u)
         setUser(u);
       } catch (e) {
         setUser(null);
       }
     };
     fetchUser();
-    console.log(user, "user in hp")
+    //console.log(user, "user in hp")
   }, []);
   useEffect(() => {
     const checkToken = async () => {
       const token = await AsyncStorage.getItem('accessToken');
-      console.log('Access Token:', token); // Debugging line
+      //console.log('Access Token:', token); // Debugging line
       if (!token) {
         router.replace('/login');
       }
@@ -49,7 +49,7 @@ export default function TabLayout() {
     const checkDailyRewardStatus = async () => {
       try {
         const statusResponse = await getDailyLoginStatus();
-        console.log('Daily Login Status:', statusResponse, user?.role); // Debugging line
+        //console.log('Daily Login Status:', statusResponse, user?.role); // Debugging line
         if (statusResponse.status === "available" && user?.role !== "admin") {
           setShowReward(true);
         }
@@ -64,7 +64,7 @@ export default function TabLayout() {
     const handleClaimReward = async () => {
     try {
       const res = await dailyLogin(); // Call the daily login endpoint
-      console.log('Daily Login Response:', res); // Debugging line
+      //console.log('Daily Login Response:', res); // Debugging line
       setShowReward(false);
 
       // Show success message

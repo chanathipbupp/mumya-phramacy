@@ -16,7 +16,7 @@ type ArticleItemProps = {
 
 export default function ArticleItem({ slug, ...props }: ArticleItemProps) {
   const router = useRouter();
-  console.log(props?.role, "role in article item")
+  //console.log(props?.role, "role in article item")
   const handleDelete = async (e?: any) => {
     if (e?.stopPropagation) e.stopPropagation();
     if (!window.confirm("คุณแน่ใจหรือไม่ว่าต้องการลบบทความนี้?")) return;
@@ -30,7 +30,7 @@ export default function ArticleItem({ slug, ...props }: ArticleItemProps) {
   };
 
   const handleEdit = () => {
-    console.log('edit', slug);
+    //console.log('edit', slug);
     router.push({
       pathname: '/AddEditArticle',
       params: { slug, mode: 'edit' },

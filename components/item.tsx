@@ -34,7 +34,7 @@ export default function Item({
   role
 }: ItemProps) {
   const [loading, setLoading] = useState(true);
-  console.log(role, "role in item")
+  //console.log(role, "role in item")
   const router = useRouter();
   const handleEdit = () => {
     router.push({

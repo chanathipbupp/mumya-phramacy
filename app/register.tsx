@@ -26,9 +26,9 @@ export default function RegisterScreen() {
       return;
     }
      try {
-      console.log(name, phone, email, password);
+      //console.log(name, phone, email, password);
       const res = await registerUser({ name, phone, email, password });
-      console.log('Registration successful:', res);
+      //console.log('Registration successful:', res);
       if (res.ok) {
         router.replace('/login');
       } else {

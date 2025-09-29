@@ -57,7 +57,7 @@ export default function AddEditArticle() {
             });
             setOriginalCustomSlug(article.customSlug); // <-- store original
           }
-          console.log('Loaded article for edit:', article);
+          // //console.log('Loaded article for edit:', article);
         } catch { }
         setLoading(false);
       })();
@@ -68,18 +68,18 @@ export default function AddEditArticle() {
 
   useEffect(() => {
     // Fetch user info on mount
-    console.log("fetching user in add edit article")
+    //console.log("fetching user in add edit article")
     const fetchUser = async () => {
       try {
         const u = await getUserProfile();
-        console.log(u, "fetched user in add edit article")
+        //console.log(u, "fetched user in add edit article")
         setUser(u);
       } catch (e) {
         setUser(null);
       }
     };
     fetchUser();
-    console.log(user, "user in add edit article")
+    //console.log(user, "user in add edit article")
   }, []);
 
   const handleChange = (key: string, value: any) => {
@@ -182,7 +182,7 @@ export default function AddEditArticle() {
           coverImage: form.coverImage || "https://cdn.kasidate.me/images/White%20Red%20Yellow%20Minimalist%20Pill%20Medical%20Pharmacy%20Logo.png",
           publishDate: form.publishDate || new Date().toISOString(),
         };
-        console.log('Creating article with form data:', createBody);
+        //console.log('Creating article with form data:', createBody);
         const res = await createArticle(createBody);
         if (Platform.OS === 'web') {
           window.alert('เพิ่มบทความสำเร็จ');
@@ -218,7 +218,7 @@ export default function AddEditArticle() {
           hardcoded.customSlug = form.customSlug;
         }
 
-        console.log("Updating article with hardcoded data:", hardcoded);
+        //console.log("Updating article with hardcoded data:", hardcoded);
         await updateArticle(form._id, hardcoded);
 
         if (Platform.OS === 'web') {

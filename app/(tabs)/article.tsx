@@ -14,7 +14,7 @@ export default function ArticleScreen() {
   const [search, setSearch] = React.useState('');
   const user = useUser();
 
-  console.log("user in article ", user)
+  //console.log("user in article ", user)
 
   const fetchArticles = async () => {
     setLoading(true);
