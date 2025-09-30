@@ -12,7 +12,7 @@ import ProfileTabIcon from '../components/ProfileTabIcon';
 import { useRouter } from 'expo-router';
 import { UserProvider, useUser } from '../../components/UserProvider';
 import DailyRewardPopup from '../../components/DailyRewardPopup'; // Adjust path if needed
-import { getDailyLoginStatus, dailyLogin, getUserProfile } from '../../composables/fetchAPI'; // Import endpoints
+import { getDailyLoginStatus, dailyLogin,getUserProfile } from '../../composables/fetchAPI'; // Import endpoints
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -53,7 +53,7 @@ export default function TabLayout() {
         if (statusResponse.status === "available" && user?.role !== "admin") {
           setShowReward(true);
         }
-
+        
       } catch (error) {
         console.error('Failed to fetch daily login status:', error);
       }
@@ -61,7 +61,7 @@ export default function TabLayout() {
     checkDailyRewardStatus();
   }, [user]); // Re-run when user changes
 
-  const handleClaimReward = async () => {
+    const handleClaimReward = async () => {
     try {
       const res = await dailyLogin(); // Call the daily login endpoint
       //console.log('Daily Login Response:', res); // Debugging line
@@ -81,15 +81,15 @@ export default function TabLayout() {
 
   return (
     <UserProvider>
-      <DailyRewardPopup visible={showReward} onClaim={handleClaimReward} />
+       <DailyRewardPopup visible={showReward} onClaim={handleClaimReward} /> 
       <Tabs
         screenOptions={{
           tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
           headerShown: false,
-          tabBarStyle: {
-            backgroundColor: '#fff', // Ensure the tab bar has a background color
-            elevation: 2, // Add shadow for Android
-          },
+          tabBarStyle: Platform.select({
+            ios: { position: 'absolute' },
+            default: {},
+          }),
         }}>
         <Tabs.Screen
           name="index"
