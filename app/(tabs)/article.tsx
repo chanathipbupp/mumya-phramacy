@@ -14,8 +14,6 @@ export default function ArticleScreen() {
   const [search, setSearch] = React.useState('');
   const user = useUser();
 
-  //console.log("user in article ", user)
-
   const fetchArticles = async () => {
     setLoading(true);
     try {
@@ -84,7 +82,7 @@ export default function ArticleScreen() {
             borderColor: '#fff',
           }} /> */}
 
-          {user?.user.role?.toLowerCase() === 'admin' && (
+          {user?.user?.role?.toLowerCase() === 'admin' && (
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
               <TouchableOpacity
                 onPress={handleCreateArticles}
@@ -162,8 +160,7 @@ export default function ArticleScreen() {
             date={article.publishDate}
             tags={article.tags}
             onDeleted={fetchArticles}
-            role={user?.user?.role}
-            
+            role={user?.user?.role} // Add null checks here
           />
         ))
       )}
