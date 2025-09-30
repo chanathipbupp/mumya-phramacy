@@ -39,7 +39,7 @@ export default function LoginScreen() {
   // 👇 Google OAuth Config
   const [request, response, promptAsync] = Google.useAuthRequest({
     iosClientId: "YOUR_IOS_CLIENT_ID.apps.googleusercontent.com",
-    androidClientId: "YOUR_ANDROID_CLIENT_ID.apps.googleusercontent.com",
+    // androidClientId: "1084156198587-oni77l00r1ec2totlvid7ah34fneghad.apps.googleusercontent.com", // Add your Android Client ID here
     webClientId:
       "1084156198587-195hlgjemnh15ucqn7bi9mbqh697cu2s.apps.googleusercontent.com",
     scopes: ["openid", "email", "profile"],

@@ -1,6 +1,8 @@
 // import { getToken } from './tokenManager';
 
-const API_URL = 'https://api.dev.mumya.kasidate.me';
+// const API_URL = 'https://api.dev.mumya.kasidate.me/api';
+const API_URL = 'https://mumyapharmacy.app/api';
+
 // const authToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2OGJjNTdlM2QxNWUwZDBkMTg5ZjYxMDciLCJlbWFpbCI6Im11bXlhcGhhcm1hY3kuYXBwQGdtYWlsLmNvbSIsInJvbGVzIjpbInN1cGVyYWRtaW4iLCJ1c2VyIiwiYWRtaW4iXSwiaWF0IjoxNzU3NDE2ODE3LCJleHAiOjE3NjAwMDg4MTd9.YrW73p7ebv1LjsR5ftx4CIJKv-3AhFZKF5cyT5xy8tI'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -694,7 +696,7 @@ export async function getLatestPointLedger(params?: {
 
 // Upload Custom File (e.g. logo)
 export async function uploadCustomFile(file: File): Promise<any> {
-  const url = `http://72.60.197.70:3000/api/files/upload/custom/logo.png`;
+  const url = `https://mumyapharmacy.app/files/upload/custom/logo.png`;
   const formData = new FormData();
   formData.append('file', file);
 
@@ -703,7 +705,13 @@ export async function uploadCustomFile(file: File): Promise<any> {
     // Do not set Content-Type for FormData; browser/React Native will set it
     body: formData,
   });
-  //console.log("Upload Custom File Response Status:", res); // Debugging line
+  // console.log("Upload Custom File Response Status:", res); // Debugging line
+    // Check if the response status is 201 (Created)
+  if (res.status === 201) {
+    // Return the response JSON directly for success
+    return res.json();
+  }
+
   if (!res.ok) {
     await handleApiError(res, 'Failed to upload custom file');
   }
@@ -761,5 +769,45 @@ export async function updateUserProfile(data: {
   if (!res.ok) {
     await handleApiError(res, 'Failed to update user profile');
   }
+  return res.json();
+}
+
+export async function grantAdmin(userId: string, reason?: string): Promise<any> {
+  const url = `${API_URL}/users/roles/admin/${userId}`;
+  const body = reason ? { reason } : {};
+  const authToken = await getAuthToken(); // Retrieve the token from storage
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to grant admin privileges');
+  }
+
+  return res.json();
+}
+
+export async function revokeAdmin(userId: string, reason?: string): Promise<any> {
+  const url = `${API_URL}/users/roles/admin/${userId}`;
+  const body = reason ? { reason } : {};
+  const authToken = await getAuthToken(); // Retrieve the token from storage
+  const res = await fetch(url, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to revoke admin privileges');
+  }
+
   return res.json();
 }

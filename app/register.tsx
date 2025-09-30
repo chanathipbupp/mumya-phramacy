@@ -18,6 +18,10 @@ export default function RegisterScreen() {
   const [error, setError] = useState('');
   const [request, response, promptAsync] = Google.useAuthRequest({
     webClientId: '1084156198587-195hlgjemnh15ucqn7bi9mbqh697cu2s.apps.googleusercontent.com',
+    androidClientId: "1084156198587-oni77l00r1ec2totlvid7ah34fneghad.apps.googleusercontent.com", // Add your Android Client ID here
+  //   redirectUri: makeRedirectUri({
+  //   useProxy: true, // ✅ Use true if running in Expo Go
+  // }),
   });
 
   const handleRegister = async () => {

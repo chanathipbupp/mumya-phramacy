@@ -22,7 +22,7 @@ export default function RootLayout() {
           document.head.appendChild(link);
         }
         // ใช้ query string กัน cache
-        link.href = `http://72.60.197.70:3000/api/files/view/logo.png?ts=${Date.now()}`;
+        link.href = `https://www.mumyapharmacy.app/files/view/logo.png?ts=${Date.now()}`;
       };
 
       updateFavicon();

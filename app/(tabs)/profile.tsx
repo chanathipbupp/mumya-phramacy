@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Image } from 'expo-image';
-import { StyleSheet, View, Text, TouchableOpacity, Alert, Platform, Modal,TextInput } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Alert, Platform, Modal, TextInput, FlatList } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { logout, getMyPointBalance, uploadCustomFile,updateUserProfile } from '../../composables/fetchAPI';
+import { logout, getMyPointBalance, uploadCustomFile, updateUserProfile, getUserList, revokeAdmin, grantAdmin } from '../../composables/fetchAPI';
 import { useRouter } from 'expo-router';
 import { useUser } from '../../components/UserProvider';
 import * as ImagePicker from 'expo-image-picker';
@@ -24,7 +24,55 @@ export default function ProfileScreen() {
     email: user?.email || '',
     phone: user?.phone || '',
   });
+  const [showAdminModal, setShowAdminModal] = useState(false); // State for admin modal
+  const [userList, setUserList] = useState<any[]>([]); // State for user list
+  const [loadingUsers, setLoadingUsers] = useState(false); // State for loading users
+  // const [reason, setReason] = useState(''); // State for optional reason
 
+  useEffect(() => {
+    if (showAdminModal) {
+      setLoadingUsers(true);
+      getUserList({
+        search: '',
+        page: '1',
+        limit: '20',
+        sortBy: 'createdAt',
+        sortDir: 'desc',
+      })
+        .then(data => setUserList(data?.items ?? []))
+        .catch(() => setUserList([]))
+        .finally(() => setLoadingUsers(false));
+    }
+  }, [showAdminModal]);
+
+  const handleGrantAdmin = async (userId: string) => {
+    try {
+      const res = await grantAdmin(userId);
+      console.log(res);
+      if (Platform.OS === 'web') {
+        window.alert('Success: Admin privileges granted successfully.');
+      } else {
+        Alert.alert('Success', 'Admin privileges granted successfully.');
+      }
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Failed to grant admin privileges.');
+    }
+  };
+
+  const handleRevokeAdmin = async (userId: string) => {
+    try {
+      const res = await revokeAdmin(userId);
+      console.log(res);
+      if (Platform.OS === 'web') {
+        window.alert('Success: Admin privileges revoked successfully.');
+      } else {
+        Alert.alert('Success', 'Admin privileges revoked successfully.');
+      }
+
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Failed to revoke admin privileges.');
+    }
+  };
   useEffect(() => {
     getMyPointBalance()
       .then(balanceData => setPoint(balanceData))
@@ -84,7 +132,7 @@ export default function ProfileScreen() {
     setUploading(true);
     try {
       const res = await uploadCustomFile(selectedFile);
-      //console.log('Banner upload response:', res);
+      console.log('Banner upload response:', res);
       if (Platform.OS === 'web') {
         window.alert('สำเร็จ: อัปโหลด Banner สำเร็จ');
       } else {
@@ -159,14 +207,17 @@ export default function ProfileScreen() {
       </View>
     );
   }
-const handleOpenEditModal = () => {
-  setUpdatedUser({
-    name: user?.name || '',
-    email: user?.email || '',
-    phone: user?.phone || '',
-  });
-  setShowEditModal(true);
-};
+  const handleOpenEditModal = () => {
+    setUpdatedUser({
+      name: user?.name || '',
+      email: user?.email || '',
+      phone: user?.phone || '',
+    });
+    setShowEditModal(true);
+  };
+
+
+  console.log(userList);
   return (
     <View style={styles.container}>
       <View style={styles.avatarBox}>
@@ -185,35 +236,109 @@ const handleOpenEditModal = () => {
             </Text>
           </View>
         )}
+
+
       </View>
-      
+      {user.isSuperAdmin && (
+        <TouchableOpacity
+          style={{
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            backgroundColor: '#E91E63',
+            paddingVertical: 8,
+            paddingHorizontal: 16,
+            borderRadius: 8,
+            elevation: 2,
+          }}
+          onPress={() => setShowAdminModal(true)} // Open the admin modal
+        >
+          <Text style={{ color: '#fff', fontWeight: 'bold' }}>Add Admin</Text>
+        </TouchableOpacity>
+      )}
+      <Modal
+  visible={showAdminModal}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setShowAdminModal(false)}
+>
+  <View style={styles.modalOverlay}>
+    <View style={styles.modalContent}>
+      <Text style={{ fontWeight: 'bold', fontSize: 20, marginBottom: 24 }}>Manage Admin Privileges</Text>
+      {loadingUsers ? (
+        <Text>Loading users...</Text>
+      ) : (
+        <View style={{ width: '100%' }}>
+          <View style={styles.tableHeader}>
+            <Text style={styles.tableHeaderCell}>Name</Text>
+            <Text style={styles.tableHeaderCell}>Email</Text>
+            <Text style={styles.tableHeaderCell}>Phone</Text>
+            <Text style={styles.tableHeaderCell}>Granted</Text>
+            <Text style={styles.tableHeaderCell}>Revoke</Text>
+          </View>
+          <FlatList
+            data={userList}
+            keyExtractor={item => item.id}
+            renderItem={({ item }) => (
+              <View style={styles.tableRow}>
+                <Text style={styles.tableCell}>{item.name || 'Unknown User'}</Text>
+                <Text style={styles.tableCell}>{item.email || '-'}</Text>
+                <Text style={styles.tableCell}>{item.phone || '-'}</Text>
+                <TouchableOpacity
+                  style={styles.grantButton}
+                  onPress={() => handleGrantAdmin(item.id)}
+                >
+                  <Text style={{ color: '#fff', fontWeight: 'bold' }}>Grant</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.revokeButton}
+                  onPress={() => handleRevokeAdmin(item.id)}
+                >
+                  <Text style={{ color: '#fff', fontWeight: 'bold' }}>Revoke</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          />
+        </View>
+      )}
+      <TouchableOpacity
+        style={styles.closeButton}
+        onPress={() => setShowAdminModal(false)}
+      >
+        <Text style={{ fontWeight: 'bold', fontSize: 16 }}>Close</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
       <View style={styles.infoBox}>
+
         <Text style={styles.name}>{user.name}</Text>
         <Text style={styles.email}>{user.email}</Text>
         <Text style={styles.phone}>{user.phone}</Text>
         {/* Edit Profile Button */}
-      <TouchableOpacity
-        style={styles.editProfileBtn}
-        onPress={handleOpenEditModal}
-        activeOpacity={0.8}
-      >
-        <Text style={{ color: '#00796B', fontWeight: 'bold' }}>แก้ไขโปรไฟล์</Text>
-      </TouchableOpacity>
-       <TouchableOpacity
-        style={styles.pointBtn}
-        onPress={() => router.push('/pointReward')}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.pointText}>
-          คะแนนสะสม: {point !== null ? point.balance : '...'}
-        </Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.editProfileBtn}
+          onPress={handleOpenEditModal}
+          activeOpacity={0.8}
+        >
+          <Text style={{ color: '#00796B', fontWeight: 'bold' }}>แก้ไขโปรไฟล์</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.pointBtn}
+          onPress={() => router.push('/pointReward')}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.pointText}>
+            คะแนนสะสม: {point !== null ? point.balance : '...'}
+          </Text>
+        </TouchableOpacity>
       </View>
 
-     
 
-      
- {/* Edit Profile Modal */}
+
+
+      {/* Edit Profile Modal */}
       <Modal
         visible={showEditModal}
         transparent
@@ -452,13 +577,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 32,
-    minWidth: 320,
+    minWidth: 600, // Wider modal for better layout
+    maxWidth: '90%', // Ensure responsiveness
     alignItems: 'center',
     boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
     display: 'flex',
     flexDirection: 'column',
   },
-    editProfileBtn: {
+  editProfileBtn: {
     backgroundColor: '#fff',
     borderRadius: 12,
     paddingVertical: 12,
@@ -469,7 +595,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#00796B',
   },
-    input: {
+  input: {
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 8,
@@ -490,6 +616,64 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 24,
     alignItems: 'center',
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    borderBottomWidth: 2,
+    borderBottomColor: '#ccc',
+    paddingBottom: 8,
+    marginBottom: 16,
+  },
+  tableHeaderCell: {
+    flex: 1,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    fontSize: 16,
+    color: '#333',
+    paddingHorizontal: 8, // Add padding for better spacing
+  },
+  tableRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  tableCell: {
+  flex: 1,
+  textAlign: 'left',
+  fontSize: 14,
+  color: '#555',
+  paddingHorizontal: 10, // Add padding for better spacing
+  flexWrap: 'wrap', // Allow text to wrap
+  maxWidth: 120, // Set a maximum width for the cell
+  overflow: 'hidden', // Prevent overflow
+  },
+  grantButton: {
+    flex: 1,
+    backgroundColor: '#00796B',
+    paddingVertical: 8,
+    borderRadius: 4,
+    alignItems: 'center',
+    marginHorizontal: 4,
+  },
+  revokeButton: {
+    flex: 1,
+    backgroundColor: '#D32F2F',
+    paddingVertical: 8,
+    borderRadius: 4,
+    alignItems: 'center',
+    marginHorizontal: 4,
+  },
+  closeButton: {
+    backgroundColor: '#ccc',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 24,
+    alignItems: 'center',
+    width: '100%',
   },
 });
 

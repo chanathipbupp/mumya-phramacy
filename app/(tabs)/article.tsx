@@ -132,8 +132,14 @@ export default function ArticleScreen() {
       <ScrollView
         style={{ flex: 1, marginTop: 8 }}
         showsVerticalScrollIndicator={false}
+        
       >
-        {filteredArticles.map(article => (
+        {filteredArticles.length === 0 ? (
+        <Text style={{ textAlign: 'center', marginTop: 40, color: '#888' }}>
+          ไม่พบข้อมูลข่าวสาร
+        </Text>
+      ) : (
+        filteredArticles.map(article => (
           <ArticleItem
             slug={article.slug}
             key={article.id}
@@ -157,8 +163,10 @@ export default function ArticleScreen() {
             tags={article.tags}
             onDeleted={fetchArticles}
             role={user?.user?.role}
+            
           />
-        ))}
+        ))
+      )}
         {loading && <Text>Loading...</Text>}
       </ScrollView>
     </View>

@@ -181,12 +181,19 @@ export default function AddEditNews() {
           bannerStyle: "banner"
         };
         const res = await createNews(createBody);
-        //console.log('Created news:', res);
+        console.log('Created news:', res);
         Alert.alert('สำเร็จ', 'เพิ่มข่าวสารสำเร็จ');
       } else if (mode === 'edit' && form._id) {
-        await updateNews(form._id, form);
-        Alert.alert('สำเร็จ', 'แก้ไขข่าวสารสำเร็จ');
+      const updateBody = { ...form };
+      console.log('Updating news with form data:', updateBody);
+      // Include linkUrl only if it is valid (not empty or undefined)
+      if (!updateBody.linkUrl || updateBody.linkUrl.trim() === '') {
+        delete updateBody.linkUrl; // Remove linkUrl from the payload if invalid
       }
+
+      await updateNews(form._id, updateBody);
+      Alert.alert('สำเร็จ', 'แก้ไขข่าวสารสำเร็จ');
+    }
       router.back();
     } catch (error: any) {
       Alert.alert(
