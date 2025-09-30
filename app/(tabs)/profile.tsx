@@ -204,6 +204,9 @@ export default function ProfileScreen() {
     return (
       <View style={styles.container}>
         <Text>ไม่พบข้อมูลผู้ใช้</Text>
+        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+          <Text style={{ color: '#ffffffff', fontWeight: 'bold' }}>ไปที่หน้าล็อกอิน</Text>
+        </TouchableOpacity>
       </View>
     );
   }
