@@ -22,7 +22,7 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "http://72.60.197.70:3000/api/files/view/logo.png"
+      "favicon": "https://www.mumyapharmacy.app/files/view/logo.png"
     },
     "plugins": [
       "expo-router",
