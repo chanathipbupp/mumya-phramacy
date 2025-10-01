@@ -96,8 +96,8 @@ export default function ProfileScreen() {
       const res = await updateUserProfile(updatedUser); // Call the update endpoint
       //console.log('Update profile response:', res);
       if (Platform.OS === 'web') {
-        Toast.show({text1: 'สำเร็จ', text2: 'ข้อมูลผู้ใช้ถูกอัปเดตเรียบร้อยแล้ว'});
-    
+        Toast.show({ text1: 'สำเร็จ', text2: 'ข้อมูลผู้ใช้ถูกอัปเดตเรียบร้อยแล้ว' });
+
         // window.alert('สำเร็จ: ข้อมูลผู้ใช้ถูกอัปเดตเรียบร้อยแล้ว');
       } else {
         Alert.alert('สำเร็จ', 'ข้อมูลผู้ใช้ถูกอัปเดตเรียบร้อยแล้ว');
@@ -268,43 +268,45 @@ export default function ProfileScreen() {
         animationType="slide"
         onRequestClose={() => setShowAdminModal(false)}
       >
-        <View style={{ width: '100%', maxHeight: 400 }}>
+        <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={{ fontWeight: 'bold', fontSize: 20, marginBottom: 24 }}>Manage Admin Privileges</Text>
             {loadingUsers ? (
               <Text>Loading users...</Text>
             ) : (
-              <View style={{ width: '100%' }}>
-                <View style={styles.tableHeader}>
-                  <Text style={styles.tableHeaderCell}>Name</Text>
-                  <Text style={styles.tableHeaderCell}>Email</Text>
-                  <Text style={styles.tableHeaderCell}>Phone</Text>
-                  <Text style={styles.tableHeaderCell}>Granted</Text>
-                  <Text style={styles.tableHeaderCell}>Revoke</Text>
-                </View>
-                <FlatList
-                  data={userList}
-                  keyExtractor={item => item.id}
-                  renderItem={({ item }) => (
-                    <View style={styles.tableRow}>
-                      <Text style={styles.tableCell}>{item.name || 'Unknown User'}</Text>
-                      <Text style={styles.tableCell}>{item.email || '-'}</Text>
-                      <Text style={styles.tableCell}>{item.phone || '-'}</Text>
-                      <TouchableOpacity
-                        style={styles.grantButton}
-                        onPress={() => handleGrantAdmin(item.id)}
-                      >
-                        <Text style={{ color: '#fff', fontWeight: 'bold' }}>Grant</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.revokeButton}
-                        onPress={() => handleRevokeAdmin(item.id)}
-                      >
-                        <Text style={{ color: '#fff', fontWeight: 'bold' }}>Revoke</Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                />
+              <View style={{ width: '100%', maxHeight: 300 }}> {/* Set maxHeight for scrollable area */}
+                <ScrollView> {/* Wrap FlatList in ScrollView */}
+                  <View style={styles.tableHeader}>
+                    <Text style={styles.tableHeaderCell}>Name</Text>
+                    <Text style={styles.tableHeaderCell}>Email</Text>
+                    <Text style={styles.tableHeaderCell}>Phone</Text>
+                    <Text style={styles.tableHeaderCell}>Granted</Text>
+                    <Text style={styles.tableHeaderCell}>Revoke</Text>
+                  </View>
+                  <FlatList
+                    data={userList}
+                    keyExtractor={item => item.id}
+                    renderItem={({ item }) => (
+                      <View style={styles.tableRow}>
+                        <Text style={styles.tableCell}>{item.name || 'Unknown User'}</Text>
+                        <Text style={styles.tableCell}>{item.email || '-'}</Text>
+                        <Text style={styles.tableCell}>{item.phone || '-'}</Text>
+                        <TouchableOpacity
+                          style={styles.grantButton}
+                          onPress={() => handleGrantAdmin(item.id)}
+                        >
+                          <Text style={{ color: '#fff', fontWeight: 'bold' }}>Grant</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.revokeButton}
+                          onPress={() => handleRevokeAdmin(item.id)}
+                        >
+                          <Text style={{ color: '#fff', fontWeight: 'bold' }}>Revoke</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  />
+                </ScrollView>
               </View>
             )}
             <TouchableOpacity
@@ -478,9 +480,9 @@ export default function ProfileScreen() {
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
         <Text style={styles.logoutText}>ออกจากระบบ</Text>
       </TouchableOpacity>
-      <Toast/>
+      <Toast />
     </View>
-    
+
   );
 }
 
@@ -574,13 +576,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#0097a7',
   },
-    modalTitle: {
+  modalTitle: {
     fontWeight: 'bold',
     fontSize: 18,
     marginBottom: 12,
     textAlign: 'center',
   },
-    modalOverlay: {
+  modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
