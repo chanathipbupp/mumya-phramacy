@@ -268,7 +268,7 @@ export default function ProfileScreen() {
         animationType="slide"
         onRequestClose={() => setShowAdminModal(false)}
       >
-        <View style={styles.modalOverlay}>
+        <View style={{ width: '100%', maxHeight: 400 }}>
           <View style={styles.modalContent}>
             <Text style={{ fontWeight: 'bold', fontSize: 20, marginBottom: 24 }}>Manage Admin Privileges</Text>
             {loadingUsers ? (
