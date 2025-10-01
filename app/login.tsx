@@ -44,7 +44,7 @@ export default function LoginScreen() {
       "1084156198587-195hlgjemnh15ucqn7bi9mbqh697cu2s.apps.googleusercontent.com",
     scopes: ["openid", "email", "profile"],
     redirectUri: makeRedirectUri({
-      useProxy: true, // ✅ ใช้ true ถ้า run ใน Expo Go
+      useProxy: false, // ✅ ใช้ true ถ้า run ใน Expo Go
     }),
   });
 
