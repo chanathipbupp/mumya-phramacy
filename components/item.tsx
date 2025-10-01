@@ -105,6 +105,7 @@ export default function Item({
 
 
           {role?.toLowerCase() === 'admin' && (
+            
             <View style={styles.editButtonWrapper}>
               <Button title="แก้ไข" onPress={handleEdit} />
             </View>
@@ -220,6 +221,6 @@ const styles = StyleSheet.create({
     margin: 0,
     borderRadius: 8,
     overflow: 'hidden',
-    backgroundColor: '#51c0f4ff',
+    backgroundColor: '#0097a7',
   },
 });

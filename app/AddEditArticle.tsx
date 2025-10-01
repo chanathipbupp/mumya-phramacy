@@ -8,7 +8,7 @@ import { UserProvider,useUser } from '../components/UserProvider';
 const defaultArticle = {
   title: '',
   content: { type: 'paragraph', version: 1, content: '' }, // <-- FIXED
-  status: 'draft',
+  status: 'published',
   tags: [],
   customSlug: '',
   coverImage: '',
@@ -184,6 +184,7 @@ export default function AddEditArticle() {
         };
         //console.log('Creating article with form data:', createBody);
         const res = await createArticle(createBody);
+        console.log('Created article:', res);
         if (Platform.OS === 'web') {
           window.alert('เพิ่มบทความสำเร็จ');
         } else {
@@ -285,14 +286,14 @@ export default function AddEditArticle() {
                       value={form.status}
                       onChange={e => handleChange('status', e.target.value)}
                     >
-                      <option value="draft">draft</option>
+                      {/* <option value="draft">draft</option> */}
                       <option value="published">published</option>
                     </select>
                   ) : (
                     <View style={[styles.input, { padding: 0, justifyContent: 'center' }]}>
-                      <Pressable onPress={() => handleChange('status', 'draft')}>
+                      {/* <Pressable onPress={() => handleChange('status', 'draft')}>
                         <Text style={{ color: form.status === 'draft' ? '#007AFF' : '#000', padding: 8 }}>draft</Text>
-                      </Pressable>
+                      </Pressable> */}
                       <Pressable onPress={() => handleChange('status', 'published')}>
                         <Text style={{ color: form.status === 'published' ? '#007AFF' : '#000', padding: 8 }}>published</Text>
                       </Pressable>

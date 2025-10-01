@@ -209,9 +209,9 @@ export default function ArticleItem({ slug, ...props }: ArticleItemProps) {
                 handleEdit();
               }}
               style={{
-                border: '2px solid #5ccbffff',
+                border: '2px solid #0097a7',
                 color: '#ffffffff',
-                backgroundColor: '#5ccbffff',
+                backgroundColor: '#0097a7',
                 margin: 4,
                 borderRadius: 12,
                 padding: '8px 18px',

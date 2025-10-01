@@ -14,7 +14,7 @@ const DailyRewardPopup: React.FC<DailyRewardPopupProps> = ({ visible, onClaim })
         {/* Reward Icon */}
         <Text style={styles.icon}>🎁</Text>
         <Text style={styles.title}>Daily Reward!</Text>
-        <Text style={styles.message}>Claim your 10 points for today!</Text>
+        <Text style={styles.message}>Claim your rewards for today!</Text>
         <TouchableOpacity style={styles.button} onPress={onClaim}>
           <Text style={styles.buttonText}>Claim Reward</Text>
         </TouchableOpacity>

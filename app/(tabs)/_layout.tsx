@@ -13,7 +13,8 @@ import { useRouter } from 'expo-router';
 import { UserProvider, useUser } from '../../components/UserProvider';
 import DailyRewardPopup from '../../components/DailyRewardPopup'; // Adjust path if needed
 import { getDailyLoginStatus, dailyLogin,getUserProfile } from '../../composables/fetchAPI'; // Import endpoints
-
+import Toast from 'react-native-toast-message'; // Import Toast
+import { Alert } from 'react-native';
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const router = useRouter();
@@ -68,12 +69,11 @@ export default function TabLayout() {
       setShowReward(false);
 
       // Show success message
-      if (Platform.OS === 'web') {
-        window.alert(`You got ${res.balance} points!`);
-      } else {
-        // @ts-ignore
-        Alert.alert('Success', `You got ${res.balance} points!`);
-      }
+     if (Platform.OS === 'web') {
+      Toast.show({text1: 'Reward Claimed!'});
+    } else {
+      Alert.alert('Reward Claimed!', 'You have successfully claimed your daily reward.');
+    }
     } catch (error) {
       console.error('Failed to claim daily reward:', error);
     }
@@ -128,6 +128,7 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
+      <Toast />
     </UserProvider>
   );
 }

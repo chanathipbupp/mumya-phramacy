@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Modal,
   Alert,
+  StyleSheet
 } from "react-native";
 import * as Google from "expo-auth-session/providers/google";
 import { useRouter } from "expo-router";
@@ -223,64 +224,43 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff" }}>
+    <View style={styles.container}>
       {/* Logo */}
-      <View style={{ alignItems: "center", marginTop: 40 }}>
+      <View style={styles.logoContainer}>
         <Image
           source={require("../assets/images/Mumya_logo.jpg")}
-          style={{ width: 120, height: 120, marginBottom: 10 }}
+          style={styles.logo}
           resizeMode="contain"
         />
       </View>
 
       {/* Title */}
-      <View style={{ alignItems: "center", marginTop: 10 }}>
-        <Text style={{ fontSize: 28, fontWeight: "bold" }}>Login here</Text>
-        <Text style={{ fontSize: 16, color: "#555", marginTop: 4 }}>
+      <View style={styles.titleContainer}>
+        <Text style={styles.title}>Login here</Text>
+        <Text style={styles.subtitle}>
           Welcome to Mumya Pharmacy
         </Text>
       </View>
 
       {/* Form */}
-      <View style={{ padding: 24 }}>
+      <View style={styles.formContainer}>
         <TextInput
           placeholder="email or phone number"
           value={email}
           onChangeText={setEmail}
-          style={{
-            borderWidth: 1,
-            borderColor: "#bbb",
-            borderRadius: 12,
-            padding: 12,
-            marginBottom: 12,
-            backgroundColor: "#f9f9f9",
-          }}
+          style={styles.input}
         />
         <TextInput
           placeholder="Password"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
-          style={{
-            borderWidth: 1,
-            borderColor: "#bbb",
-            borderRadius: 12,
-            padding: 12,
-            marginBottom: 12,
-            backgroundColor: "#f9f9f9",
-          }}
+          style={styles.input}
         />
 
         {/* Normal Login */}
         <TouchableOpacity
-          style={{
-            backgroundColor: loading ? "#80cbc4" : "#0097a7",
-            borderRadius: 12,
-            paddingVertical: 14,
-            alignItems: "center",
-            marginBottom: 12,
-            opacity: loading ? 0.7 : 1,
-          }}
+          style={styles.signInButton}
           onPress={handleLogin}
           disabled={loading}
         >
@@ -304,25 +284,23 @@ export default function LoginScreen() {
         </View>
 
         {/* Or Google */}
-        <View style={{ alignItems: "center", marginBottom: 8 }}>
-          <Text style={{ color: "#0097a7" }}>Or continue with</Text>
+        <View style={styles.googleContainer}>
+          <Text style={styles.googleText}>Or continue with</Text>
         </View>
         <TouchableOpacity
-          style={{
-            backgroundColor: "#fff",
-            borderColor: "#0097a7",
-            borderWidth: 1,
-            borderRadius: 12,
-            paddingVertical: 14,
-            alignItems: "center",
-            marginBottom: 12,
-          }}
+          style={styles.googleButton}
           onPress={handleGoogleLogin}
           disabled={!request}
         >
-          <Text style={{ color: "#0097a7", fontWeight: "bold", fontSize: 16 }}>
+          <View style={styles.googleButtonContent}>
+          <Image
+              source={require('../assets/images/google-logo.png')} // Google logo URL
+              style={styles.googleLogo}
+            />
+          <Text style={styles.googleButtonText}>
             Google
           </Text>
+          </View>
         </TouchableOpacity>
       </View>
 
@@ -449,3 +427,107 @@ export default function LoginScreen() {
     </View>
   );
 }
+
+
+const styles = StyleSheet.create({
+
+  googleButton: {
+    width: "100%",
+    backgroundColor: "#fff",
+    borderColor: "#0097a7",
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: "center",
+    marginBottom: 12,
+    flexDirection: "row", // Add flex direction for horizontal alignment
+    justifyContent: "center", // Center content horizontally
+  },
+  googleButtonContent: {
+    flexDirection: "row", // Align logo and text horizontally
+    alignItems: "center", // Center vertically
+  },
+  googleLogo: {
+    width: 20, // Set width for the logo
+    height: 20, // Set height for the logo
+    marginRight: 8, // Add spacing between logo and text
+  },
+  googleButtonText: {
+    color: "#0097a7",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 16, // Add padding for responsiveness
+  },
+  logoContainer: {
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  logo: {
+    width: 120,
+    height: 120,
+  },
+  titleContainer: {
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "#555",
+    textAlign: "center",
+  },
+  formContainer: {
+    width: "100%", // Make the form take full width
+    maxWidth: 400, // Limit width for larger screens
+    alignItems: "center",
+  },
+  input: {
+    width: "100%",
+    borderWidth: 1,
+    borderColor: "#bbb",
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+    backgroundColor: "#f9f9f9",
+  },
+  signInButton: {
+    width: "100%",
+    backgroundColor: "#0097a7",
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  signInButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  signUpContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginBottom: 8,
+  },
+  signUpText: {
+    color: "#0097a7",
+    fontWeight: "bold",
+  },
+  googleContainer: {
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  googleText: {
+    color: "#0097a7",
+  }
+
+});

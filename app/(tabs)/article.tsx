@@ -19,6 +19,7 @@ export default function ArticleScreen() {
     try {
       const res = await getArticles({ page: '1', limit: '10' });
       setArticles(res.items || res.data || []);
+      console.log('Fetched articles:', res); // Debugging line
     } catch {
       setArticles([]);
     }
@@ -87,7 +88,7 @@ export default function ArticleScreen() {
               <TouchableOpacity
                 onPress={handleCreateArticles}
                 style={{
-                  backgroundColor: '#5ccbffff',
+                  backgroundColor: '#0097a7',
                   borderRadius: 8,
                   paddingHorizontal: 16,
                   paddingVertical: 8,

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Image } from 'expo-image';
-import { StyleSheet, View, Text, TouchableOpacity, Alert, Platform, Modal, TextInput, FlatList } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Alert, Platform, Modal, TextInput, FlatList, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { logout, getMyPointBalance, uploadCustomFile, updateUserProfile, getUserList, revokeAdmin, grantAdmin } from '../../composables/fetchAPI';
 import { useRouter } from 'expo-router';
 import { useUser } from '../../components/UserProvider';
 import * as ImagePicker from 'expo-image-picker';
+import Toast from 'react-native-toast-message'; // Import Toast
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -95,7 +96,9 @@ export default function ProfileScreen() {
       const res = await updateUserProfile(updatedUser); // Call the update endpoint
       //console.log('Update profile response:', res);
       if (Platform.OS === 'web') {
-        window.alert('สำเร็จ: ข้อมูลผู้ใช้ถูกอัปเดตเรียบร้อยแล้ว');
+        Toast.show({text1: 'สำเร็จ', text2: 'ข้อมูลผู้ใช้ถูกอัปเดตเรียบร้อยแล้ว'});
+    
+        // window.alert('สำเร็จ: ข้อมูลผู้ใช้ถูกอัปเดตเรียบร้อยแล้ว');
       } else {
         Alert.alert('สำเร็จ', 'ข้อมูลผู้ใช้ถูกอัปเดตเรียบร้อยแล้ว');
       }
@@ -260,59 +263,59 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       )}
       <Modal
-  visible={showAdminModal}
-  transparent
-  animationType="slide"
-  onRequestClose={() => setShowAdminModal(false)}
->
-  <View style={styles.modalOverlay}>
-    <View style={styles.modalContent}>
-      <Text style={{ fontWeight: 'bold', fontSize: 20, marginBottom: 24 }}>Manage Admin Privileges</Text>
-      {loadingUsers ? (
-        <Text>Loading users...</Text>
-      ) : (
-        <View style={{ width: '100%' }}>
-          <View style={styles.tableHeader}>
-            <Text style={styles.tableHeaderCell}>Name</Text>
-            <Text style={styles.tableHeaderCell}>Email</Text>
-            <Text style={styles.tableHeaderCell}>Phone</Text>
-            <Text style={styles.tableHeaderCell}>Granted</Text>
-            <Text style={styles.tableHeaderCell}>Revoke</Text>
-          </View>
-          <FlatList
-            data={userList}
-            keyExtractor={item => item.id}
-            renderItem={({ item }) => (
-              <View style={styles.tableRow}>
-                <Text style={styles.tableCell}>{item.name || 'Unknown User'}</Text>
-                <Text style={styles.tableCell}>{item.email || '-'}</Text>
-                <Text style={styles.tableCell}>{item.phone || '-'}</Text>
-                <TouchableOpacity
-                  style={styles.grantButton}
-                  onPress={() => handleGrantAdmin(item.id)}
-                >
-                  <Text style={{ color: '#fff', fontWeight: 'bold' }}>Grant</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.revokeButton}
-                  onPress={() => handleRevokeAdmin(item.id)}
-                >
-                  <Text style={{ color: '#fff', fontWeight: 'bold' }}>Revoke</Text>
-                </TouchableOpacity>
+        visible={showAdminModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowAdminModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={{ fontWeight: 'bold', fontSize: 20, marginBottom: 24 }}>Manage Admin Privileges</Text>
+            {loadingUsers ? (
+              <Text>Loading users...</Text>
+            ) : (
+              <View style={{ width: '100%' }}>
+                <View style={styles.tableHeader}>
+                  <Text style={styles.tableHeaderCell}>Name</Text>
+                  <Text style={styles.tableHeaderCell}>Email</Text>
+                  <Text style={styles.tableHeaderCell}>Phone</Text>
+                  <Text style={styles.tableHeaderCell}>Granted</Text>
+                  <Text style={styles.tableHeaderCell}>Revoke</Text>
+                </View>
+                <FlatList
+                  data={userList}
+                  keyExtractor={item => item.id}
+                  renderItem={({ item }) => (
+                    <View style={styles.tableRow}>
+                      <Text style={styles.tableCell}>{item.name || 'Unknown User'}</Text>
+                      <Text style={styles.tableCell}>{item.email || '-'}</Text>
+                      <Text style={styles.tableCell}>{item.phone || '-'}</Text>
+                      <TouchableOpacity
+                        style={styles.grantButton}
+                        onPress={() => handleGrantAdmin(item.id)}
+                      >
+                        <Text style={{ color: '#fff', fontWeight: 'bold' }}>Grant</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.revokeButton}
+                        onPress={() => handleRevokeAdmin(item.id)}
+                      >
+                        <Text style={{ color: '#fff', fontWeight: 'bold' }}>Revoke</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                />
               </View>
             )}
-          />
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setShowAdminModal(false)}
+            >
+              <Text style={{ fontWeight: 'bold', fontSize: 16 }}>Close</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      )}
-      <TouchableOpacity
-        style={styles.closeButton}
-        onPress={() => setShowAdminModal(false)}
-      >
-        <Text style={{ fontWeight: 'bold', fontSize: 16 }}>Close</Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-</Modal>
+      </Modal>
 
       <View style={styles.infoBox}>
 
@@ -325,7 +328,7 @@ export default function ProfileScreen() {
           onPress={handleOpenEditModal}
           activeOpacity={0.8}
         >
-          <Text style={{ color: '#00796B', fontWeight: 'bold' }}>แก้ไขโปรไฟล์</Text>
+          <Text style={{ color: '#0097a7', fontWeight: 'bold' }}>แก้ไขโปรไฟล์</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.pointBtn}
@@ -349,42 +352,44 @@ export default function ProfileScreen() {
         onRequestClose={() => setShowEditModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 12 }}>แก้ไขโปรไฟล์</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="ชื่อ"
-              value={updatedUser.name}
-              onChangeText={text => setUpdatedUser({ ...updatedUser, name: text })}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="อีเมล"
-              value={updatedUser.email}
-              onChangeText={text => setUpdatedUser({ ...updatedUser, email: text })}
-              keyboardType="email-address"
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="เบอร์โทร"
-              value={updatedUser.phone}
-              onChangeText={text => setUpdatedUser({ ...updatedUser, phone: text })}
-              keyboardType="phone-pad"
-            />
-            <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
-              <TouchableOpacity
-                style={styles.saveBtn}
-                onPress={handleSaveProfile}
-              >
-                <Text style={{ color: '#fff', fontWeight: 'bold' }}>บันทึก</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.cancelBtn}
-                onPress={() => setShowEditModal(false)}
-              >
-                <Text style={{ color: '#333', fontWeight: 'bold' }}>ยกเลิก</Text>
-              </TouchableOpacity>
-            </View>
+          <View style={styles.modalContainer}>
+            <ScrollView contentContainerStyle={styles.scrollContent}>
+              <Text style={styles.modalTitle}>แก้ไขโปรไฟล์</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="ชื่อ"
+                value={updatedUser.name}
+                onChangeText={text => setUpdatedUser({ ...updatedUser, name: text })}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="อีเมล"
+                value={updatedUser.email}
+                onChangeText={text => setUpdatedUser({ ...updatedUser, email: text })}
+                keyboardType="email-address"
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="เบอร์โทร"
+                value={updatedUser.phone}
+                onChangeText={text => setUpdatedUser({ ...updatedUser, phone: text })}
+                keyboardType="phone-pad"
+              />
+              <View style={styles.buttonRow}>
+                <TouchableOpacity
+                  style={styles.saveBtn}
+                  onPress={handleSaveProfile}
+                >
+                  <Text style={styles.saveBtnText}>บันทึก</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.cancelBtn}
+                  onPress={() => setShowEditModal(false)}
+                >
+                  <Text style={styles.cancelBtnText}>ยกเลิก</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -398,7 +403,7 @@ export default function ProfileScreen() {
           onPress={() => setShowBannerModal(true)}
           activeOpacity={0.8}
         >
-          <Text style={{ color: '#00796B', fontWeight: 'bold' }}>เปลี่ยนรูป Banner</Text>
+          <Text style={{ color: '#0097a7', fontWeight: 'bold' }}>เปลี่ยนรูป Banner</Text>
         </TouchableOpacity>
       )}
 
@@ -433,7 +438,7 @@ export default function ProfileScreen() {
                   style={{
                     padding: '8px 24px',
                     borderRadius: 8,
-                    background: '#00796B',
+                    background: '#0097a7',
                     color: '#fff',
                     fontWeight: 'bold',
                     border: 'none',
@@ -473,7 +478,9 @@ export default function ProfileScreen() {
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
         <Text style={styles.logoutText}>ออกจากระบบ</Text>
       </TouchableOpacity>
+      <Toast/>
     </View>
+    
   );
 }
 
@@ -499,7 +506,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#00796B',
+    backgroundColor: '#0097a7',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -536,11 +543,11 @@ const styles = StyleSheet.create({
     elevation: 2,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#00796B',
+    borderColor: '#0097a7',
   },
   pointText: {
     fontSize: 18,
-    color: '#00796B',
+    color: '#0097a7',
     fontWeight: 'bold',
   },
   logoutBtn: {
@@ -565,27 +572,40 @@ const styles = StyleSheet.create({
     elevation: 2,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#00796B',
+    borderColor: '#0097a7',
   },
-  modalOverlay: {
-    position: 'fixed',
-    top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.2)',
+    modalTitle: {
+    fontWeight: 'bold',
+    fontSize: 18,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+    modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    display: 'flex',
-    zIndex: 9999,
+  },
+  modalContainer: {
+    backgroundColor: '#ffffffff',
+    borderRadius: 16,
+    padding: 16,
+    width: '90%', // Use percentage for responsiveness
+    maxWidth: 400, // Limit width for larger screens
+    elevation: 5,
+  },
+  scrollContent: {
+    alignItems: 'center',
+    paddingBottom: 16,
   },
   modalContent: {
     backgroundColor: '#fff',
     borderRadius: 16,
-    padding: 32,
-    minWidth: 600, // Wider modal for better layout
-    maxWidth: '90%', // Ensure responsiveness
+    padding: 24,
+    width: '90%', // Use percentage for responsiveness
+    maxWidth: 400, // Set a maximum width for larger screens
     alignItems: 'center',
-    boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
-    display: 'flex',
-    flexDirection: 'column',
+    elevation: 5,
   },
   editProfileBtn: {
     backgroundColor: '#fff',
@@ -596,7 +616,7 @@ const styles = StyleSheet.create({
     elevation: 2,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#00796B',
+    borderColor: '#0097a7',
   },
   input: {
     borderWidth: 1,
@@ -604,21 +624,40 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,
+    width: '100%', // Ensure inputs take full width of the modal
+    fontSize: 16, // Adjust font size for readability
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 16,
     width: '100%',
   },
   saveBtn: {
-    backgroundColor: '#00796B',
+    flex: 1,
+    backgroundColor: '#0097a7',
     borderRadius: 8,
     paddingVertical: 12,
-    paddingHorizontal: 24,
+    marginHorizontal: 4,
     alignItems: 'center',
   },
+  saveBtnText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
   cancelBtn: {
+    flex: 1,
     backgroundColor: '#eee',
     borderRadius: 8,
     paddingVertical: 12,
-    paddingHorizontal: 24,
+    marginHorizontal: 4,
     alignItems: 'center',
+  },
+  cancelBtnText: {
+    color: '#333',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   tableHeader: {
     flexDirection: 'row',
@@ -645,18 +684,18 @@ const styles = StyleSheet.create({
     borderBottomColor: '#eee',
   },
   tableCell: {
-  flex: 1,
-  textAlign: 'left',
-  fontSize: 14,
-  color: '#555',
-  paddingHorizontal: 10, // Add padding for better spacing
-  flexWrap: 'wrap', // Allow text to wrap
-  maxWidth: 120, // Set a maximum width for the cell
-  overflow: 'hidden', // Prevent overflow
+    flex: 1,
+    textAlign: 'left',
+    fontSize: 14,
+    color: '#555',
+    paddingHorizontal: 10, // Add padding for better spacing
+    flexWrap: 'wrap', // Allow text to wrap
+    maxWidth: 120, // Set a maximum width for the cell
+    overflow: 'hidden', // Prevent overflow
   },
   grantButton: {
     flex: 1,
-    backgroundColor: '#00796B',
+    backgroundColor: '#0097a7',
     paddingVertical: 8,
     borderRadius: 4,
     alignItems: 'center',

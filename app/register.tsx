@@ -16,13 +16,13 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    webClientId: '1084156198587-195hlgjemnh15ucqn7bi9mbqh697cu2s.apps.googleusercontent.com',
-    androidClientId: "1084156198587-oni77l00r1ec2totlvid7ah34fneghad.apps.googleusercontent.com", // Add your Android Client ID here
-  //   redirectUri: makeRedirectUri({
-  //   useProxy: true, // ✅ Use true if running in Expo Go
-  // }),
-  });
+  // const [request, response, promptAsync] = Google.useAuthRequest({
+  //   webClientId: '1084156198587-195hlgjemnh15ucqn7bi9mbqh697cu2s.apps.googleusercontent.com',
+  //   androidClientId: "1084156198587-oni77l00r1ec2totlvid7ah34fneghad.apps.googleusercontent.com", // Add your Android Client ID here
+  // //   redirectUri: makeRedirectUri({
+  // //   useProxy: true, // ✅ Use true if running in Expo Go
+  // // }),
+  // });
 
   const handleRegister = async () => {
     if (password !== confirmPassword) {
@@ -43,16 +43,16 @@ export default function RegisterScreen() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      const result = await promptAsync();
-      if (result?.type === 'success') {
-        // handle Google registration here if needed
-      }
-    } catch (e: any) {
-      setError(e.message);
-    }
-  };
+  // const handleGoogleLogin = async () => {
+  //   try {
+  //     const result = await promptAsync();
+  //     if (result?.type === 'success') {
+  //       // handle Google registration here if needed
+  //     }
+  //   } catch (e: any) {
+  //     setError(e.message);
+  //   }
+  // };
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff', padding: 24 }}>
@@ -149,7 +149,7 @@ export default function RegisterScreen() {
             <Text style={{ color: '#0097a7', fontWeight: 'bold' }}>Sign in</Text>
           </TouchableOpacity>
         </View>
-        <View style={{ alignItems: 'center', marginBottom: 8 }}>
+        {/* <View style={{ alignItems: 'center', marginBottom: 8 }}>
           <Text style={{ color: '#0097a7' }}>Or continue with</Text>
         </View>
         <TouchableOpacity
@@ -165,7 +165,7 @@ export default function RegisterScreen() {
           onPress={handleGoogleLogin}
         >
           <Text style={{ color: '#0097a7', fontWeight: 'bold', fontSize: 16 }}>Google</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
     </View>
   );

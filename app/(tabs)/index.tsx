@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   createButton: {
-    backgroundColor: '#5ccbffff',
+    backgroundColor: '#0097a7',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8,
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
     marginRight: 14, // was 8, now 14 for more space
   },
   chipActive: {
-    backgroundColor: '#222',
+    backgroundColor: '#0097a7',
   },
   chipText: {
     fontSize: 15,
