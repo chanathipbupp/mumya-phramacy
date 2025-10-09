@@ -30,7 +30,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  
+
   // Phone modal state
   const [showPhoneModal, setShowPhoneModal] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -293,14 +293,19 @@ export default function LoginScreen() {
           disabled={!request}
         >
           <View style={styles.googleButtonContent}>
-          <Image
+            <Image
               source={require('../assets/images/google-logo.png')} // Google logo URL
               style={styles.googleLogo}
             />
-          <Text style={styles.googleButtonText}>
-            Google
-          </Text>
+            <Text style={styles.googleButtonText}>
+              Google
+            </Text>
           </View>
+        </TouchableOpacity>
+
+        {/* Privacy Page Link */}
+        <TouchableOpacity onPress={() => router.push('/privacy')}>
+          <Text style={styles.privacyLink}>By logging in, you agree to our Privacy Policy.</Text>
         </TouchableOpacity>
       </View>
 
@@ -332,7 +337,7 @@ export default function LoginScreen() {
             }}>
               กรอกเบอร์โทรศัพท์และชื่อ
             </Text>
-            
+
             <Text style={{
               fontSize: 14,
               color: '#666',
@@ -528,6 +533,11 @@ const styles = StyleSheet.create({
   },
   googleText: {
     color: "#0097a7",
-  }
+  },
+  privacyLink: {
+    color: '#0097a7',
+    fontSize: 12,
+    textAlign: 'center',
+  },
 
 });

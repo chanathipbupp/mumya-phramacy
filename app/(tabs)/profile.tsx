@@ -225,7 +225,16 @@ export default function ProfileScreen() {
 
   // console.log(userList);
   return (
+    <View>
+      <TouchableOpacity
+          style={styles.deleteAccountBtn}
+          onPress={() => router.push('/deleteUser')}
+        >
+          <Text style={styles.deleteAccountText}>Delete Acc</Text>
+        </TouchableOpacity>
+    
     <View style={styles.container}>
+      
       <View style={styles.avatarBox}>
         {user.avatar ? (
           <Image source={user.avatar} style={styles.avatar} />
@@ -242,7 +251,7 @@ export default function ProfileScreen() {
             </Text>
           </View>
         )}
-
+        
 
       </View>
       {user.isSuperAdmin && (
@@ -482,14 +491,14 @@ export default function ProfileScreen() {
       </TouchableOpacity>
       <Toast />
     </View>
-
+</View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 32,
+    paddingHorizontal: 32,
     backgroundColor: '#F5F5F5',
     alignItems: 'center',
   },
@@ -719,6 +728,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
   },
+  deleteAccountBtn: {
+  backgroundColor: '#D32F2F',
+  paddingVertical: 12,
+  paddingHorizontal: 24, // Adjust padding for better size
+  borderRadius: 12,
+  alignItems: 'center',
+  alignSelf: 'flex-end', // Align the button to the right
+  marginTop: 16, // Add spacing from the top
+  marginRight: 16, // Add spacing from the right edge
+},
+deleteAccountText: {
+  color: '#fff',
+  fontWeight: 'bold',
+  fontSize: 16,
+},
 });
 
 

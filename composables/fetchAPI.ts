@@ -811,3 +811,22 @@ export async function revokeAdmin(userId: string, reason?: string): Promise<any>
 
   return res.json();
 }
+
+
+export async function deleteUser(): Promise<any> {
+  const url = `${API_URL}/users/delete`;
+  const authToken = await getAuthToken(); // Retrieve the token from storage
+  const res = await fetch(url, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`,
+    }
+  });
+
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to delete user');
+  }
+
+  return res.json();
+}
