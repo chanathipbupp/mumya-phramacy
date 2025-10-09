@@ -41,7 +41,7 @@ export default function HomeScreen() {
     setLoading(true);
     try {
       const res = await getNews({ page: '1', limit: '10' });
-      console.log('Fetched news:', res); // Debugging line
+      // console.log('Fetched news:', res); // Debugging line
       const fetched = res.data || res;
       const items = Array.isArray(fetched) ? fetched : fetched.items || [];
       setNews(items);

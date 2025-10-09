@@ -49,7 +49,7 @@ export default function ProfileScreen() {
   const handleGrantAdmin = async (userId: string) => {
     try {
       const res = await grantAdmin(userId);
-      console.log(res);
+      // console.log(res);
       if (Platform.OS === 'web') {
         window.alert('Success: Admin privileges granted successfully.');
       } else {
@@ -63,7 +63,7 @@ export default function ProfileScreen() {
   const handleRevokeAdmin = async (userId: string) => {
     try {
       const res = await revokeAdmin(userId);
-      console.log(res);
+      // console.log(res);
       if (Platform.OS === 'web') {
         window.alert('Success: Admin privileges revoked successfully.');
       } else {
@@ -135,7 +135,7 @@ export default function ProfileScreen() {
     setUploading(true);
     try {
       const res = await uploadCustomFile(selectedFile);
-      console.log('Banner upload response:', res);
+      // console.log('Banner upload response:', res);
       if (Platform.OS === 'web') {
         window.alert('สำเร็จ: อัปโหลด Banner สำเร็จ');
       } else {
@@ -223,7 +223,7 @@ export default function ProfileScreen() {
   };
 
 
-  console.log(userList);
+  // console.log(userList);
   return (
     <View style={styles.container}>
       <View style={styles.avatarBox}>

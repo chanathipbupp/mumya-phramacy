@@ -54,6 +54,10 @@ export default function AddEditArticle() {
                 typeof article.content === 'object' && article.content !== null
                   ? article.content
                   : { type: 'doc', version: 1, content: article.content || '' },
+              coverImage:
+                article.coverImage === 'https://cdn.kasidate.me/images/White%20Red%20Yellow%20Minimalist%20Pill%20Medical%20Pharmacy%20Logo.png'
+                  ? ' '
+                  : article.coverImage
             });
             setOriginalCustomSlug(article.customSlug); // <-- store original
           }
@@ -184,7 +188,7 @@ export default function AddEditArticle() {
         };
         //console.log('Creating article with form data:', createBody);
         const res = await createArticle(createBody);
-        console.log('Created article:', res);
+        // console.log('Created article:', res);
         if (Platform.OS === 'web') {
           window.alert('เพิ่มบทความสำเร็จ');
         } else {

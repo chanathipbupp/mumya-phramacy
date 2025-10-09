@@ -38,7 +38,7 @@ export default function TabLayout() {
   useEffect(() => {
     const checkToken = async () => {
       const token = await AsyncStorage.getItem('accessToken');
-      console.log('Access Token:', token); // Debugging line
+      // console.log('Access Token:', token); // Debugging line
       if (!token) {
         router.replace('/login');
       }

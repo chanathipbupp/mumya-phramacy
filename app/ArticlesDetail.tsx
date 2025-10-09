@@ -34,7 +34,7 @@ export default function ArticlesDetail() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-    console.log(article);
+    // console.log(article);
   }, [slug]);
 
   if (loading) {
