@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -17,6 +17,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Toast from "react-native-toast-message";
 import { makeRedirectUri } from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
+import * as AuthSession from "expo-auth-session";
+import LineLogin, { LoginPermission } from '@xmartlabs/react-native-line'
+
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -24,6 +27,9 @@ export const screenOptions = {
   headerShown: false,
 };
 
+const LINE_CLIENT_ID = "2008830229"; // Channel ID จาก LINE Developers Console
+const LINE_REDIRECT_URI = "http://localhost:8081/auth/callback";
+const LINE_AUTH_URL = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LINE_CLIENT_ID}&redirect_uri=${LINE_REDIRECT_URI}&state=12345abcde&scope=profile%20openid%20email`;
 export default function LoginScreen() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -47,6 +53,20 @@ export default function LoginScreen() {
     redirectUri: "https://mumyapharmacy.app/auth/callback",
   });
 
+const handleLineLogin = async () => {
+  try {
+    const url = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LINE_CLIENT_ID}&redirect_uri=${encodeURIComponent(LINE_REDIRECT_URI)}&state=12345abcde&scope=profile%20openid%20email`;
+    const res=await WebBrowser.openBrowserAsync(url);
+    console.log("LINE Login Response:", res);
+    // หลังจาก login → code จะไป webhook.site
+  } catch (error: any) {
+    console.error("LINE Login Error:", error.message);
+    Toast.show({
+      text1: "LINE Login ไม่สำเร็จ",
+      text2: error.message || "เกิดข้อผิดพลาด",
+    });
+  }
+};
   // =========================
   // Email/Phone Login
   // =========================
@@ -287,21 +307,38 @@ export default function LoginScreen() {
         <View style={styles.googleContainer}>
           <Text style={styles.googleText}>Or continue with</Text>
         </View>
-        <TouchableOpacity
-          style={styles.googleButton}
-          onPress={handleGoogleLogin}
-          disabled={!request}
-        >
-          <View style={styles.googleButtonContent}>
-            <Image
-              source={require('../assets/images/google-logo.png')} // Google logo URL
-              style={styles.googleLogo}
-            />
-            <Text style={styles.googleButtonText}>
-              Google
-            </Text>
-          </View>
-        </TouchableOpacity>
+        <View style={styles.socialButtonsContainer}>
+          <TouchableOpacity
+            style={styles.googleButton}
+            onPress={handleGoogleLogin}
+            disabled={!request}
+          >
+            <View style={styles.googleButtonContent}>
+              <Image
+                source={require('../assets/images/google-logo.png')} // Google logo URL
+                style={styles.googleLogo}
+              />
+              <Text style={styles.googleButtonText}>
+                Google
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.lineButton}
+            onPress={handleLineLogin}
+          >
+            <View style={styles.lineButtonContent}>
+              <Image
+                source={require('../assets/images/line-logo.png')} // LINE logo URL
+                style={styles.lineLogo}
+              />
+              <Text style={styles.lineButtonText}>
+                LINE
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </View>
 
         {/* Privacy Page Link */}
         <TouchableOpacity onPress={() => router.push('/privacy')}>
@@ -435,27 +472,32 @@ export default function LoginScreen() {
 
 
 const styles = StyleSheet.create({
-
+  socialButtonsContainer: {
+    flexDirection: "row", // Align buttons horizontally
+    justifyContent: "space-between", // Add space between buttons
+    width: "100%", // Full width
+    marginBottom: 12, // Add spacing below
+  },
   googleButton: {
-    width: "100%",
+    flex: 1, // Take equal space
     backgroundColor: "#fff",
     borderColor: "#0097a7",
     borderWidth: 1,
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: "center",
-    marginBottom: 12,
-    flexDirection: "row", // Add flex direction for horizontal alignment
-    justifyContent: "center", // Center content horizontally
+    marginRight: 8, // Add spacing between Google and LINE buttons
+    flexDirection: "row",
+    justifyContent: "center",
   },
   googleButtonContent: {
-    flexDirection: "row", // Align logo and text horizontally
-    alignItems: "center", // Center vertically
+    flexDirection: "row",
+    alignItems: "center",
   },
   googleLogo: {
-    width: 20, // Set width for the logo
-    height: 20, // Set height for the logo
-    marginRight: 8, // Add spacing between logo and text
+    width: 20,
+    height: 20,
+    marginRight: 8,
   },
   googleButtonText: {
     color: "#0097a7",
@@ -539,5 +581,30 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
   },
-
+  lineButton: {
+    flex: 1, // Take equal space
+    // backgroundColor: "#00c300", // LINE green color
+    backgroundColor: "#fff",
+    borderColor: "#0097a7",
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+  },
+  lineButtonContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  lineLogo: {
+    width: 20,
+    height: 20,
+    marginRight: 8,
+  },
+  lineButtonText: {
+    color: "#0097a7",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
 });

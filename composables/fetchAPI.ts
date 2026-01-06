@@ -559,6 +559,26 @@ export async function loginWithGoogle(data: {
   return res.json();
 }
 
+// Auth: Google Login
+export async function loginWithLine(data: {
+  accessToken: string;
+  phone?: string;
+  name?: string;
+}): Promise<any> {
+  const url = `https://mumya.api-playground.memolab.me/api/auth/line`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to login with Line');
+  }
+  return res.json();
+}
+
 // Auth: Register
 export async function registerUser(data: {
   name: string;

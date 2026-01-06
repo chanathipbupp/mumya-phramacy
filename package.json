@@ -25,6 +25,7 @@
     "@reduxjs/toolkit": "^2.9.0",
     "@tiptap/react": "^3.4.2",
     "@tiptap/starter-kit": "^3.4.2",
+    "@xmartlabs/react-native-line": "^5.4.0",
     "expo": "~53.0.22",
     "expo-auth-session": "~6.2.1",
     "expo-blur": "~14.1.5",
