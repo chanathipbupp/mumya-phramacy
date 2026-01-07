@@ -559,7 +559,7 @@ export async function loginWithGoogle(data: {
   return res.json();
 }
 
-// Auth: Google Login
+// Auth: Line Login
 export async function loginWithLine(data: {
   accessToken: string;
   phone?: string;
