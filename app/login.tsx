@@ -18,7 +18,7 @@ import Toast from "react-native-toast-message";
 import { makeRedirectUri } from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 import * as AuthSession from "expo-auth-session";
-import LineLogin, { LoginPermission } from '@xmartlabs/react-native-line'
+// import LineLogin, { LoginPermission } from '@xmartlabs/react-native-line'
 
 
 WebBrowser.maybeCompleteAuthSession();
@@ -28,7 +28,7 @@ export const screenOptions = {
 };
 
 const LINE_CLIENT_ID = "2008830229"; // Channel ID จาก LINE Developers Console
-const LINE_REDIRECT_URI = "http://localhost:8081/auth/callback";
+const LINE_REDIRECT_URI = "https://mumyapharmacy.app";
 const LINE_AUTH_URL = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LINE_CLIENT_ID}&redirect_uri=${LINE_REDIRECT_URI}&state=12345abcde&scope=profile%20openid%20email`;
 export default function LoginScreen() {
   const router = useRouter();
