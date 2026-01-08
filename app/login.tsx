@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import * as Google from "expo-auth-session/providers/google";
 import { useRouter } from "expo-router";
-import { loginWithEmail, loginWithGoogle } from "../composables/fetchAPI";
+import { loginWithEmail, loginWithGoogle, loginWithLine } from "../composables/fetchAPI";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Toast from "react-native-toast-message";
 import { makeRedirectUri } from "expo-auth-session";
@@ -42,7 +42,8 @@ export default function LoginScreen() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [googleAccessToken, setGoogleAccessToken] = useState<string | null>(null);
   const [googleName, setGoogleName] = useState(""); // <-- Add this state
-
+  const [lineName, setLineName] = useState(""); // สำหรับ LINE
+  const [lineAccessToken, setLineAccessToken] = useState<string | null>(null);
   // 👇 Google OAuth Config
   const [request, response, promptAsync] = Google.useAuthRequest({
     iosClientId: "YOUR_IOS_CLIENT_ID.apps.googleusercontent.com",
@@ -52,21 +53,128 @@ export default function LoginScreen() {
     scopes: ["openid", "email", "profile"],
     redirectUri: "https://mumyapharmacy.app/auth/callback",
   });
+  const exchangeCodeForAccessToken = async (code: string): Promise<string> => {
+    try {
+      const response = await fetch("https://api.line.me/oauth2/v2.1/token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          grant_type: "authorization_code",
+          code: code,
+          redirect_uri: LINE_REDIRECT_URI,
+          client_id: LINE_CLIENT_ID,
+          client_secret: "2f690ccb3165a8b837d355c52b208f3d",
+        }).toString(),
+      });
+      console.log("LINE Token Response Status:", response.status, response); // Log status
 
-const handleLineLogin = async () => {
-  try {
-    const url = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LINE_CLIENT_ID}&redirect_uri=${encodeURIComponent(LINE_REDIRECT_URI)}&state=12345abcde&scope=profile%20openid%20email`;
-    const res=await WebBrowser.openBrowserAsync(url);
-    console.log("LINE Login Response:", res);
-    // หลังจาก login → code จะไป webhook.site
-  } catch (error: any) {
-    console.error("LINE Login Error:", error.message);
-    Toast.show({
-      text1: "LINE Login ไม่สำเร็จ",
-      text2: error.message || "เกิดข้อผิดพลาด",
-    });
-  }
-};
+      if (!response.ok) {
+        const errorResponse = await response.json();
+        console.error("LINE API Error Response:", errorResponse);
+        throw new Error(errorResponse.error_description || "Failed to exchange code for access token");
+      }
+
+      const tokenResponse = await response.json();
+      console.log("Token Response:", tokenResponse); // Log token response
+      if (!tokenResponse.access_token || tokenResponse.token_type !== "Bearer") {
+        throw new Error("Invalid token response from LINE API");
+      }
+
+      return tokenResponse.access_token;
+    } catch (error) {
+      console.error("Exchange Code Error:", error);
+      throw new Error(error.message || "An error occurred while exchanging code for access token");
+    }
+  };
+  const handleLineLogin = async () => {
+    try {
+      const url = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LINE_CLIENT_ID}&redirect_uri=${encodeURIComponent(LINE_REDIRECT_URI)}&state=12345abcde&scope=profile%20openid%20email`;
+      const result = await WebBrowser.openAuthSessionAsync(url, LINE_REDIRECT_URI);
+      console.log("LINE login result:", result);
+
+      if (result.type === "success" && result.url) {
+        const queryParams = new URLSearchParams(new URL(result.url).search);
+        const code = queryParams.get("code");
+
+        if (code) {
+          setLoading(true);
+          console.log("LINE Authorization Code:", code);
+
+          const accessToken = await exchangeCodeForAccessToken(code);
+          console.log("LINE Access Token:", accessToken);
+
+          if (accessToken) {
+            await tryLineLogin(accessToken);
+          } else {
+            Toast.show({ text1: "LINE Login ไม่สำเร็จ", text2: "ไม่สามารถรับ accessToken ได้" });
+            setLoading(false);
+          }
+        } else {
+          Toast.show({ text1: "LINE Login ไม่สำเร็จ", text2: "ไม่พบ code" });
+        }
+      } else {
+        Toast.show({ text1: "LINE Login ถูกยกเลิกหรือผิดพลาด" });
+      }
+    } catch (error: any) {
+      console.error("LINE Login Error:", error.message);
+      Toast.show({
+        text1: "LINE Login ไม่สำเร็จ",
+        text2: error.message || "เกิดข้อผิดพลาด",
+      });
+    }
+  };
+
+  const tryLineLogin = async (accessToken: string, phone?: string, name?: string) => {
+    try {
+      console.log("Trying LINE login with accessToken:", accessToken);
+
+      const res = await loginWithLine({
+        accessToken,
+        ...(phone && { phone }),
+        ...(name && { name }),
+      });
+
+      console.log("Response from loginWithLine:", res);
+
+      if (res.accessToken) {
+        // บันทึก accessToken ลงใน AsyncStorage
+        await AsyncStorage.setItem("accessToken", res.accessToken);
+        Toast.show({ text1: "Login ด้วย LINE สำเร็จ" });
+        setTimeout(() => {
+          setLoading(false);
+          setShowPhoneModal(false);
+          setPhoneNumber("");
+          setLineAccessToken(null); // Reset LINE access token
+          setLineName(""); // Reset LINE name
+          router.replace("/");
+        }, 1200);
+      } else if (
+        res.reason === "PHONE_REQUIRED_FOR_NEW_ACCOUNT" ||
+        res.reason === "NAME_REQUIRED_FOR_NEW_ACCOUNT"
+      ) {
+        // กรณีที่ต้องการข้อมูลเพิ่มเติม เช่น เบอร์โทรศัพท์หรือชื่อ
+        setLineAccessToken(accessToken); // Set LINE access token
+        setShowPhoneModal(true);
+        setLoading(false);
+        if (name) setLineName(name); // Set default name if available
+      } else {
+        // กรณีที่ login ไม่สำเร็จ
+        Toast.show({
+          text1: "เข้าสู่ระบบด้วย LINE ไม่สำเร็จ",
+          text2: res.message || res.reason || "",
+        });
+        setLoading(false);
+      }
+    } catch (e: any) {
+      console.error("LINE login error:", e);
+      Toast.show({ text1: e.message || "LINE Login ไม่สำเร็จ" });
+      setLoading(false);
+      setError(e.message);
+    }
+  };
+
   // =========================
   // Email/Phone Login
   // =========================
@@ -203,7 +311,6 @@ const handleLineLogin = async () => {
       setError(e.message);
     }
   };
-
   const handlePhoneSubmit = async () => {
     if (!phoneNumber.trim()) {
       Toast.show({
@@ -212,10 +319,19 @@ const handleLineLogin = async () => {
       });
       return;
     }
-    if (!googleName.trim()) {
+
+    if (googleAccessToken && !googleName.trim()) {
       Toast.show({
         type: "error",
-        text1: "กรุณากรอกชื่อ",
+        text1: "กรุณากรอกชื่อสำหรับ Google",
+      });
+      return;
+    }
+
+    if (lineAccessToken && !lineName.trim()) {
+      Toast.show({
+        type: "error",
+        text1: "กรุณากรอกชื่อสำหรับ LINE",
       });
       return;
     }
@@ -229,12 +345,20 @@ const handleLineLogin = async () => {
       return;
     }
 
+    setLoading(true);
+
     if (googleAccessToken) {
-      setLoading(true);
       await tryGoogleLogin(googleAccessToken, phoneNumber, googleName);
+    } else if (lineAccessToken) {
+      await tryLineLogin(lineAccessToken, phoneNumber, lineName);
+    } else {
+      Toast.show({
+        type: "error",
+        text1: "ไม่พบ accessToken",
+      });
+      setLoading(false);
     }
   };
-
   const closePhoneModal = () => {
     setShowPhoneModal(false);
     setPhoneNumber("");
@@ -401,11 +525,17 @@ const handleLineLogin = async () => {
 
             <TextInput
               placeholder="ชื่อ"
-              value={googleName}
-              onChangeText={setGoogleName}
+              value={googleAccessToken ? googleName : lineName}
+              onChangeText={(text) => {
+                if (googleAccessToken) {
+                  setGoogleName(text);
+                } else if (lineAccessToken) {
+                  setLineName(text);
+                }
+              }}
               style={{
                 borderWidth: 1,
-                borderColor: '#bbb',
+                borderColor: "#bbb",
                 borderRadius: 8,
                 padding: 12,
                 marginBottom: 16,

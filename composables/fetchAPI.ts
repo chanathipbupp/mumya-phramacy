@@ -232,7 +232,7 @@ export async function getNewsBySlug(slug: string): Promise<any> {
 
 // Upload File
 export async function uploadFile(file: File): Promise<any> {
-  const url = `${API_URL}/files/uploads`;
+  const url = `https://mumyapharmacy.app/files/upload`;
   const authToken = await getAuthToken(); // <-- await here!
   const formData = new FormData();
   formData.append('file', file);
@@ -565,7 +565,7 @@ export async function loginWithLine(data: {
   phone?: string;
   name?: string;
 }): Promise<any> {
-  const url = `https://mumya.api-playground.memolab.me/api/auth/line`;
+  const url = `${API_URL}/auth/line`;
   const res = await fetch(url, {
     method: 'POST',
     headers: {

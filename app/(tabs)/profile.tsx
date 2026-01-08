@@ -18,6 +18,7 @@ export default function ProfileScreen() {
   const [showBannerModal, setShowBannerModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isHovered, setIsHovered] = useState(false);
 
   const [showEditModal, setShowEditModal] = useState(false); // State for showing the edit modal
   const [updatedUser, setUpdatedUser] = useState({
@@ -205,10 +206,10 @@ export default function ProfileScreen() {
 
   if (!user) {
     return (
-      <View style={styles.container}>
-        <Text>ไม่พบข้อมูลผู้ใช้</Text>
-        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-          <Text style={{ color: '#ffffffff', fontWeight: 'bold' }}>ไปที่หน้าล็อกอิน</Text>
+      <View style={styles.notFoundContainer}>
+        <Text style={styles.notFoundText}>ไม่พบข้อมูลผู้ใช้</Text>
+        <TouchableOpacity style={styles.notFoundButton} onPress={handleLogout}>
+          <Text style={styles.notFoundButtonText}>ไปที่หน้าล็อกอิน</Text>
         </TouchableOpacity>
       </View>
     );
@@ -227,271 +228,276 @@ export default function ProfileScreen() {
   return (
     <View>
       <TouchableOpacity
-          style={styles.deleteAccountBtn}
-          onPress={() => router.push('/deleteUser')}
-        >
-          <Text style={styles.deleteAccountText}>Delete Acc</Text>
-        </TouchableOpacity>
-    
-    <View style={styles.container}>
-      
-      <View style={styles.avatarBox}>
-        {user.avatar ? (
-          <Image source={user.avatar} style={styles.avatar} />
-        ) : (
-          <View style={styles.mpAvatar}>
-            <Text style={styles.mpText}>
-              {user.name
-                .split(' ')
-                .map(word => word[0])
-                .join('')
-                .replace(/[^A-Za-z0-9]/g, '')
-                .toUpperCase()
-                .slice(0, 2)}
-            </Text>
-          </View>
+        style={[
+          styles.deleteAccountBtn,
+          isHovered && { backgroundColor: '#FF0000' }, // เปลี่ยนเป็นสีแดงเมื่อ Hover
+        ]}
+        onPress={() => router.push('/deleteUser')}
+        onMouseEnter={() => setIsHovered(true)} // เมื่อเมาส์เข้า
+        onMouseLeave={() => setIsHovered(false)} // เมื่อเมาส์ออก
+      >
+        <Text style={styles.deleteAccountText}>Delete Acc</Text>
+      </TouchableOpacity>
+
+      <View style={styles.container}>
+
+        <View style={styles.avatarBox}>
+          {user.avatar ? (
+            <Image source={user.avatar} style={styles.avatar} />
+          ) : (
+            <View style={styles.mpAvatar}>
+              <Text style={styles.mpText}>
+                {user.name
+                  .split(' ')
+                  .map(word => word[0])
+                  .join('')
+                  .replace(/[^A-Za-z0-9]/g, '')
+                  .toUpperCase()
+                  .slice(0, 2)}
+              </Text>
+            </View>
+          )}
+
+
+        </View>
+        {user.isSuperAdmin && (
+          <TouchableOpacity
+            style={{
+              position: 'absolute',
+              top: 16,
+              right: 16,
+              backgroundColor: '#E91E63',
+              paddingVertical: 8,
+              paddingHorizontal: 16,
+              borderRadius: 8,
+              elevation: 2,
+            }}
+            onPress={() => setShowAdminModal(true)} // Open the admin modal
+          >
+            <Text style={{ color: '#fff', fontWeight: 'bold' }}>Add Admin</Text>
+          </TouchableOpacity>
         )}
-        
-
-      </View>
-      {user.isSuperAdmin && (
-        <TouchableOpacity
-          style={{
-            position: 'absolute',
-            top: 16,
-            right: 16,
-            backgroundColor: '#E91E63',
-            paddingVertical: 8,
-            paddingHorizontal: 16,
-            borderRadius: 8,
-            elevation: 2,
-          }}
-          onPress={() => setShowAdminModal(true)} // Open the admin modal
-        >
-          <Text style={{ color: '#fff', fontWeight: 'bold' }}>Add Admin</Text>
-        </TouchableOpacity>
-      )}
-      <Modal
-        visible={showAdminModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowAdminModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={{ fontWeight: 'bold', fontSize: 20, marginBottom: 24 }}>Manage Admin Privileges</Text>
-            {loadingUsers ? (
-              <Text>Loading users...</Text>
-            ) : (
-              <View style={{ width: '100%', maxHeight: 300 }}> {/* Set maxHeight for scrollable area */}
-                <ScrollView> {/* Wrap FlatList in ScrollView */}
-                  <View style={styles.tableHeader}>
-                    <Text style={styles.tableHeaderCell}>Name</Text>
-                    <Text style={styles.tableHeaderCell}>Email</Text>
-                    <Text style={styles.tableHeaderCell}>Phone</Text>
-                    <Text style={styles.tableHeaderCell}>Granted</Text>
-                    <Text style={styles.tableHeaderCell}>Revoke</Text>
-                  </View>
-                  <FlatList
-                    data={userList}
-                    keyExtractor={item => item.id}
-                    renderItem={({ item }) => (
-                      <View style={styles.tableRow}>
-                        <Text style={styles.tableCell}>{item.name || 'Unknown User'}</Text>
-                        <Text style={styles.tableCell}>{item.email || '-'}</Text>
-                        <Text style={styles.tableCell}>{item.phone || '-'}</Text>
-                        <TouchableOpacity
-                          style={styles.grantButton}
-                          onPress={() => handleGrantAdmin(item.id)}
-                        >
-                          <Text style={{ color: '#fff', fontWeight: 'bold' }}>Grant</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          style={styles.revokeButton}
-                          onPress={() => handleRevokeAdmin(item.id)}
-                        >
-                          <Text style={{ color: '#fff', fontWeight: 'bold' }}>Revoke</Text>
-                        </TouchableOpacity>
-                      </View>
-                    )}
-                  />
-                </ScrollView>
-              </View>
-            )}
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setShowAdminModal(false)}
-            >
-              <Text style={{ fontWeight: 'bold', fontSize: 16 }}>Close</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      <View style={styles.infoBox}>
-
-        <Text style={styles.name}>{user.name}</Text>
-        <Text style={styles.email}>{user.email}</Text>
-        <Text style={styles.phone}>{user.phone}</Text>
-        {/* Edit Profile Button */}
-        <TouchableOpacity
-          style={styles.editProfileBtn}
-          onPress={handleOpenEditModal}
-          activeOpacity={0.8}
-        >
-          <Text style={{ color: '#0097a7', fontWeight: 'bold' }}>แก้ไขโปรไฟล์</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.pointBtn}
-          onPress={() => router.push('/pointReward')}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.pointText}>
-            คะแนนสะสม: {point !== null ? point.balance : '...'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-
-
-
-      {/* Edit Profile Modal */}
-      <Modal
-        visible={showEditModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowEditModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <ScrollView contentContainerStyle={styles.scrollContent}>
-              <Text style={styles.modalTitle}>แก้ไขโปรไฟล์</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="ชื่อ"
-                value={updatedUser.name}
-                onChangeText={text => setUpdatedUser({ ...updatedUser, name: text })}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="อีเมล"
-                value={updatedUser.email}
-                onChangeText={text => setUpdatedUser({ ...updatedUser, email: text })}
-                keyboardType="email-address"
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="เบอร์โทร"
-                value={updatedUser.phone}
-                onChangeText={text => setUpdatedUser({ ...updatedUser, phone: text })}
-                keyboardType="phone-pad"
-              />
-              <View style={styles.buttonRow}>
-                <TouchableOpacity
-                  style={styles.saveBtn}
-                  onPress={handleSaveProfile}
-                >
-                  <Text style={styles.saveBtnText}>บันทึก</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.cancelBtn}
-                  onPress={() => setShowEditModal(false)}
-                >
-                  <Text style={styles.cancelBtnText}>ยกเลิก</Text>
-                </TouchableOpacity>
-              </View>
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
-
-
-      {/* Banner Upload Button */}
-
-      {user?.role?.toLowerCase() === 'admin' && (
-        <TouchableOpacity
-          style={styles.bannerBtn}
-          onPress={() => setShowBannerModal(true)}
-          activeOpacity={0.8}
-        >
-          <Text style={{ color: '#0097a7', fontWeight: 'bold' }}>เปลี่ยนรูป Banner</Text>
-        </TouchableOpacity>
-      )}
-
-
-      {/* Banner Upload Modal (Web only) */}
-      {Platform.OS === 'web' && (
         <Modal
-          visible={showBannerModal}
+          visible={showAdminModal}
           transparent
-          animationType="fade"
-          onRequestClose={() => setShowBannerModal(false)}
+          animationType="slide"
+          onRequestClose={() => setShowAdminModal(false)}
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
-              <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 12 }}>อัปโหลด Banner (.png เท่านั้น)</Text>
-              <input
-                type="file"
-                accept="image/png"
-                style={{ marginBottom: 12 }}
-                onChange={handleBannerFileChange}
-                disabled={uploading}
-              />
-              {previewUrl && (
-                <img
-                  src={previewUrl}
-                  alt="Preview"
-                  style={{ width: 200, height: 100, objectFit: 'contain', marginBottom: 12, borderRadius: 8, border: '1px solid #eee' }}
-                />
+              <Text style={{ fontWeight: 'bold', fontSize: 20, marginBottom: 24 }}>Manage Admin Privileges</Text>
+              {loadingUsers ? (
+                <Text>Loading users...</Text>
+              ) : (
+                <View style={{ width: '100%', maxHeight: 300 }}> {/* Set maxHeight for scrollable area */}
+                  <ScrollView> {/* Wrap FlatList in ScrollView */}
+                    <View style={styles.tableHeader}>
+                      <Text style={styles.tableHeaderCell}>Name</Text>
+                      <Text style={styles.tableHeaderCell}>Email</Text>
+                      <Text style={styles.tableHeaderCell}>Phone</Text>
+                      <Text style={styles.tableHeaderCell}>Granted</Text>
+                      <Text style={styles.tableHeaderCell}>Revoke</Text>
+                    </View>
+                    <FlatList
+                      data={userList}
+                      keyExtractor={item => item.id}
+                      renderItem={({ item }) => (
+                        <View style={styles.tableRow}>
+                          <Text style={styles.tableCell}>{item.name || 'Unknown User'}</Text>
+                          <Text style={styles.tableCell}>{item.email || '-'}</Text>
+                          <Text style={styles.tableCell}>{item.phone || '-'}</Text>
+                          <TouchableOpacity
+                            style={styles.grantButton}
+                            onPress={() => handleGrantAdmin(item.id)}
+                          >
+                            <Text style={{ color: '#fff', fontWeight: 'bold' }}>Grant</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={styles.revokeButton}
+                            onPress={() => handleRevokeAdmin(item.id)}
+                          >
+                            <Text style={{ color: '#fff', fontWeight: 'bold' }}>Revoke</Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                    />
+                  </ScrollView>
+                </View>
               )}
-              <View style={{ flexDirection: 'row', gap: 12 }}>
-                <button
-                  style={{
-                    padding: '8px 24px',
-                    borderRadius: 8,
-                    background: '#0097a7',
-                    color: '#fff',
-                    fontWeight: 'bold',
-                    border: 'none',
-                    cursor: uploading ? 'not-allowed' : 'pointer',
-                  }}
-                  onClick={handleBannerUpload}
-                  disabled={uploading || !selectedFile}
-                >
-                  {uploading ? 'กำลังอัปโหลด...' : 'อัปโหลด'}
-                </button>
-                <button
-                  style={{
-                    padding: '8px 24px',
-                    borderRadius: 8,
-                    background: '#eee',
-                    color: '#333',
-                    fontWeight: 'bold',
-                    border: 'none',
-                    marginLeft: 8,
-                    cursor: uploading ? 'not-allowed' : 'pointer',
-                  }}
-                  onClick={() => {
-                    setShowBannerModal(false);
-                    setSelectedFile(null);
-                    setPreviewUrl(null);
-                  }}
-                  disabled={uploading}
-                >
-                  ยกเลิก
-                </button>
-              </View>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setShowAdminModal(false)}
+              >
+                <Text style={{ fontWeight: 'bold', fontSize: 16 }}>Close</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </Modal>
-      )}
-      <View style={{ flex: 1 }} />
-      <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-        <Text style={styles.logoutText}>ออกจากระบบ</Text>
-      </TouchableOpacity>
-      <Toast />
+
+        <View style={styles.infoBox}>
+
+          <Text style={styles.name}>{user.name}</Text>
+          {user.lineId ? null : <Text style={styles.email}>{user.email}</Text>} {/* ซ่อน email หากมี lineId */}
+          <Text style={styles.phone}>{user.phone}</Text>
+          {/* Edit Profile Button */}
+          <TouchableOpacity
+            style={styles.editProfileBtn}
+            onPress={handleOpenEditModal}
+            activeOpacity={0.8}
+          >
+            <Text style={{ color: '#0097a7', fontWeight: 'bold' }}>แก้ไขโปรไฟล์</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.pointBtn}
+            onPress={() => router.push('/pointReward')}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.pointText}>
+              คะแนนสะสม: {point !== null ? point.balance : '...'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+
+
+
+        {/* Edit Profile Modal */}
+        <Modal
+          visible={showEditModal}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setShowEditModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <ScrollView contentContainerStyle={styles.scrollContent}>
+                <Text style={styles.modalTitle}>แก้ไขโปรไฟล์</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="ชื่อ"
+                  value={updatedUser.name}
+                  onChangeText={text => setUpdatedUser({ ...updatedUser, name: text })}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="อีเมล"
+                  value={user.lineId ? '' : updatedUser.email} // หากมี lineId ให้แสดงค่าว่าง
+                  onChangeText={text => setUpdatedUser({ ...updatedUser, email: text })}
+                  keyboardType="email-address"
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="เบอร์โทร"
+                  value={updatedUser.phone}
+                  onChangeText={text => setUpdatedUser({ ...updatedUser, phone: text })}
+                  keyboardType="phone-pad"
+                />
+                <View style={styles.buttonRow}>
+                  <TouchableOpacity
+                    style={styles.saveBtn}
+                    onPress={handleSaveProfile}
+                  >
+                    <Text style={styles.saveBtnText}>บันทึก</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.cancelBtn}
+                    onPress={() => setShowEditModal(false)}
+                  >
+                    <Text style={styles.cancelBtnText}>ยกเลิก</Text>
+                  </TouchableOpacity>
+                </View>
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+
+
+        {/* Banner Upload Button */}
+
+        {user?.role?.toLowerCase() === 'admin' && (
+          <TouchableOpacity
+            style={styles.bannerBtn}
+            onPress={() => setShowBannerModal(true)}
+            activeOpacity={0.8}
+          >
+            <Text style={{ color: '#0097a7', fontWeight: 'bold' }}>เปลี่ยนรูป Banner</Text>
+          </TouchableOpacity>
+        )}
+
+
+        {/* Banner Upload Modal (Web only) */}
+        {Platform.OS === 'web' && (
+          <Modal
+            visible={showBannerModal}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setShowBannerModal(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 12 }}>อัปโหลด Banner (.png เท่านั้น)</Text>
+                <input
+                  type="file"
+                  accept="image/png"
+                  style={{ marginBottom: 12 }}
+                  onChange={handleBannerFileChange}
+                  disabled={uploading}
+                />
+                {previewUrl && (
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
+                    style={{ width: 200, height: 100, objectFit: 'contain', marginBottom: 12, borderRadius: 8, border: '1px solid #eee' }}
+                  />
+                )}
+                <View style={{ flexDirection: 'row', gap: 12 }}>
+                  <button
+                    style={{
+                      padding: '8px 24px',
+                      borderRadius: 8,
+                      background: '#0097a7',
+                      color: '#fff',
+                      fontWeight: 'bold',
+                      border: 'none',
+                      cursor: uploading ? 'not-allowed' : 'pointer',
+                    }}
+                    onClick={handleBannerUpload}
+                    disabled={uploading || !selectedFile}
+                  >
+                    {uploading ? 'กำลังอัปโหลด...' : 'อัปโหลด'}
+                  </button>
+                  <button
+                    style={{
+                      padding: '8px 24px',
+                      borderRadius: 8,
+                      background: '#eee',
+                      color: '#333',
+                      fontWeight: 'bold',
+                      border: 'none',
+                      marginLeft: 8,
+                      cursor: uploading ? 'not-allowed' : 'pointer',
+                    }}
+                    onClick={() => {
+                      setShowBannerModal(false);
+                      setSelectedFile(null);
+                      setPreviewUrl(null);
+                    }}
+                    disabled={uploading}
+                  >
+                    ยกเลิก
+                  </button>
+                </View>
+              </View>
+            </View>
+          </Modal>
+        )}
+        <View style={{ flex: 1 }} />
+        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+          <Text style={styles.logoutText}>ออกจากระบบ</Text>
+        </TouchableOpacity>
+        <Toast />
+      </View>
     </View>
-</View>
   );
 }
 
@@ -562,9 +568,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   logoutBtn: {
-    width: '100%',
+    width: '70%',
     backgroundColor: '#E91E63',
-    paddingVertical: 16,
+    paddingVertical: 12, // ลดขนาด padding
     borderRadius: 12,
     alignItems: 'center',
     marginBottom: 24,
@@ -572,7 +578,7 @@ const styles = StyleSheet.create({
   logoutText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 18,
+    fontSize: 16, // ลดขนาด font
   },
   bannerBtn: {
     backgroundColor: '#fff',
@@ -729,20 +735,47 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   deleteAccountBtn: {
-  backgroundColor: '#D32F2F',
-  paddingVertical: 12,
-  paddingHorizontal: 24, // Adjust padding for better size
-  borderRadius: 12,
-  alignItems: 'center',
-  alignSelf: 'flex-end', // Align the button to the right
-  marginTop: 16, // Add spacing from the top
-  marginRight: 16, // Add spacing from the right edge
-},
-deleteAccountText: {
-  color: '#fff',
-  fontWeight: 'bold',
-  fontSize: 16,
-},
+    backgroundColor: '#cacacaff',
+    paddingVertical: 8,
+    paddingHorizontal: 16, // Adjust padding for better size
+    borderRadius: 12,
+    alignItems: 'center',
+    alignSelf: 'flex-end', // Align the button to the right
+    marginTop: 8, // Add spacing from the top
+    marginRight: 8, // Add spacing from the right edge
+  },
+
+  deleteAccountText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 10,
+  },
+  notFoundContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5', // เพิ่มสีพื้นหลัง
+    paddingHorizontal: 16, // เพิ่ม padding สำหรับความกว้างหน้าจอ
+  },
+  notFoundText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#555',
+    marginBottom: 16, // เพิ่มระยะห่างระหว่างข้อความและปุ่ม
+    textAlign: 'center',
+  },
+  notFoundButton: {
+    backgroundColor: '#0097a7',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  notFoundButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
 });
 
 

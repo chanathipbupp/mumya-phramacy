@@ -6,11 +6,6 @@ import * as Clipboard from 'expo-clipboard';
 import { getMyPointBalance, getMyPointLedger, getUserList, adjustUserPointAdmin, getLatestPointLedger, getUserPointBalanceByUid } from '../../composables/fetchAPI';
 import { useUser } from '../../components/UserProvider';
 
-const mockUsers = [
-  { id: '1', name: 'สมชาย ใจดี', phone: '0812345678' },
-  { id: '2', name: 'สมหญิง รักเรียน', phone: '0898765432' },
-  { id: '3', name: 'John Doe', phone: '0999999999' },
-];
 
 const historyDashboard = [
   {
@@ -387,7 +382,11 @@ export default function TabTwoScreen() {
                             )}
                             <Text style={styles.tableCell}>{user.phone || '-'}</Text>
                           </View>
-                          <Text style={[styles.tableCell, { flex: 2 }]}>{user.email || '-'}</Text>
+                          <Text style={[styles.tableCell, { flex: 2 }]}>
+                            {user.email?.includes('lineaccount.temp.mumyapharmacy.app')
+                              ? 'From LINE'
+                              : user.email || '-'}
+                          </Text>
                           <View style={{ flex: 2, flexDirection: 'row', alignItems: 'center' }}>
                             <TouchableOpacity
                               onPress={() => handleToggleEyes(user.id)} // Toggle eyes
@@ -404,9 +403,9 @@ export default function TabTwoScreen() {
                             </TouchableOpacity>
                             {toggleEyes[user.id] && (
                               <View>
-                              <Text style={[styles.tableCell, { flex: 1 }]}>
-                                {userBalances[user.id] !== undefined ? `${userBalances[user.id]} P` : 'Loading...'}
-                              </Text>
+                                <Text style={[styles.tableCell, { flex: 1 }]}>
+                                  {userBalances[user.id] !== undefined ? `${userBalances[user.id]} P` : 'Loading...'}
+                                </Text>
                               </View>
                             )}
                           </View>                        </View>
