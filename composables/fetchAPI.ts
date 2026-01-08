@@ -232,7 +232,7 @@ export async function getNewsBySlug(slug: string): Promise<any> {
 
 // Upload File
 export async function uploadFile(file: File): Promise<any> {
-  const url = `https://mumyapharmacy.app/files/upload`;
+  const url = `${API_URL}/files/uploads`;
   const authToken = await getAuthToken(); // <-- await here!
   const formData = new FormData();
   formData.append('file', file);
