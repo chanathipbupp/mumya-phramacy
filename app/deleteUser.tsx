@@ -7,7 +7,7 @@ export default function DeleteUserPage() {
   const router = useRouter();
 
   const handleDeleteAccount = async () => {
-    console.log('Delete account initiated');
+    // console.log('Delete account initiated');
     try {
       const confirmation = window.confirm(
         'Are you sure you want to delete your account? This action cannot be undone.'

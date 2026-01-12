@@ -19,7 +19,7 @@ export default function ArticleScreen() {
     try {
       const res = await getArticles({ page: '1', limit: '10' });
       setArticles(res.items || res.data || []);
-      // console.log('Fetched articles:', res); // Debugging line
+      // //console.log('Fetched articles:', res); // Debugging line
     } catch {
       setArticles([]);
     }

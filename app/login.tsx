@@ -27,7 +27,7 @@ export const screenOptions = {
   headerShown: false,
 };
 
-const LINE_CLIENT_ID = "2008830229"; // Channel ID จาก LINE Developers Console
+const LINE_CLIENT_ID = "2008830229"; // Channel ID จาก LINE Developers //console
 const LINE_REDIRECT_URI = "https://mumyapharmacy.app";
 const LINE_AUTH_URL = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LINE_CLIENT_ID}&redirect_uri=${LINE_REDIRECT_URI}&state=12345abcde&scope=profile%20openid%20email`;
 export default function LoginScreen() {
@@ -68,23 +68,23 @@ export default function LoginScreen() {
           client_secret: "2f690ccb3165a8b837d355c52b208f3d",
         }).toString(),
       });
-      console.log("LINE Token Response Status:", response.status, response); // Log status
+      //console.log("LINE Token Response Status:", response.status, response); // Log status
 
       if (!response.ok) {
         const errorResponse = await response.json();
-        console.error("LINE API Error Response:", errorResponse);
+        //console.error("LINE API Error Response:", errorResponse);
         throw new Error(errorResponse.error_description || "Failed to exchange code for access token");
       }
 
       const tokenResponse = await response.json();
-      console.log("Token Response:", tokenResponse); // Log token response
+      //console.log("Token Response:", tokenResponse); // Log token response
       if (!tokenResponse.access_token || tokenResponse.token_type !== "Bearer") {
         throw new Error("Invalid token response from LINE API");
       }
 
       return tokenResponse.access_token;
     } catch (error) {
-      console.error("Exchange Code Error:", error);
+      //console.error("Exchange Code Error:", error);
       throw new Error(error.message || "An error occurred while exchanging code for access token");
     }
   };
@@ -92,7 +92,7 @@ export default function LoginScreen() {
     try {
       const url = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LINE_CLIENT_ID}&redirect_uri=${encodeURIComponent(LINE_REDIRECT_URI)}&state=12345abcde&scope=profile%20openid%20email`;
       const result = await WebBrowser.openAuthSessionAsync(url, LINE_REDIRECT_URI);
-      console.log("LINE login result:", result);
+      //console.log("LINE login result:", result);
 
       if (result.type === "success" && result.url) {
         const queryParams = new URLSearchParams(new URL(result.url).search);
@@ -100,10 +100,10 @@ export default function LoginScreen() {
 
         if (code) {
           setLoading(true);
-          console.log("LINE Authorization Code:", code);
+          //console.log("LINE Authorization Code:", code);
 
           const accessToken = await exchangeCodeForAccessToken(code);
-          console.log("LINE Access Token:", accessToken);
+          //console.log("LINE Access Token:", accessToken);
 
           if (accessToken) {
             await tryLineLogin(accessToken);
@@ -118,7 +118,7 @@ export default function LoginScreen() {
         Toast.show({ text1: "LINE Login ถูกยกเลิกหรือผิดพลาด" });
       }
     } catch (error: any) {
-      console.error("LINE Login Error:", error.message);
+      //console.error("LINE Login Error:", error.message);
       Toast.show({
         text1: "LINE Login ไม่สำเร็จ",
         text2: error.message || "เกิดข้อผิดพลาด",
@@ -128,7 +128,7 @@ export default function LoginScreen() {
 
   const tryLineLogin = async (accessToken: string, phone?: string, name?: string) => {
     try {
-      console.log("Trying LINE login with accessToken:", accessToken);
+      //console.log("Trying LINE login with accessToken:", accessToken);
 
       const res = await loginWithLine({
         accessToken,
@@ -136,7 +136,7 @@ export default function LoginScreen() {
         ...(name && { name }),
       });
 
-      console.log("Response from loginWithLine:", res);
+      //console.log("Response from loginWithLine:", res);
 
       if (res.accessToken) {
         // บันทึก accessToken ลงใน AsyncStorage
@@ -168,7 +168,7 @@ export default function LoginScreen() {
         setLoading(false);
       }
     } catch (e: any) {
-      console.error("LINE login error:", e);
+      //console.error("LINE login error:", e);
       Toast.show({ text1: e.message || "LINE Login ไม่สำเร็จ" });
       setLoading(false);
       setError(e.message);
@@ -225,7 +225,7 @@ export default function LoginScreen() {
         setLoading(false);
       }
     } catch (e: any) {
-      //console.log("login error:", e);
+      ////console.log("login error:", e);
       Toast.show({ text1: e.message || "Login ไม่สำเร็จ" });
       setLoading(false);
       setError(e.message);
@@ -239,7 +239,7 @@ export default function LoginScreen() {
     try {
       setLoading(true);
       const result = await promptAsync();
-      //console.log("Google login result:", result.authentication?.accessToken);
+      ////console.log("Google login result:", result.authentication?.accessToken);
 
       if (result.type === "success" && result.authentication?.accessToken) {
         const accessToken = result.authentication.accessToken;
@@ -256,7 +256,7 @@ export default function LoginScreen() {
         setLoading(false);
       }
     } catch (e: any) {
-      console.error("Google login error:", e);
+      //console.error("Google login error:", e);
       Toast.show({ text1: e.message || "Google Login ไม่สำเร็จ" });
       setLoading(false);
       setError(e.message);
@@ -275,7 +275,7 @@ export default function LoginScreen() {
         ...(name && { name }),
       });
 
-      //console.log("Google login response:", res);
+      ////console.log("Google login response:", res);
 
       if (res.accessToken) {
         await AsyncStorage.setItem("accessToken", res.accessToken);
@@ -305,7 +305,7 @@ export default function LoginScreen() {
         setLoading(false);
       }
     } catch (e: any) {
-      console.error("Google login error:", e);
+      //console.error("Google login error:", e);
       Toast.show({ text1: e.message || "Google Login ไม่สำเร็จ" });
       setLoading(false);
       setError(e.message);
