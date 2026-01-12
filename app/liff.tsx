@@ -38,7 +38,7 @@ export default function Liff() {
 
           // ใช้ loginWithLine เพื่อส่ง accessToken ไปยัง API
           const response = await loginWithLine({ accessToken: token });
-          console.log("API Response:", response);
+          // console.log("API Response:", response);
 
           // เก็บ accessToken ที่ได้จาก API response ไว้ใน localStorage
           if (response && response.accessToken) {
