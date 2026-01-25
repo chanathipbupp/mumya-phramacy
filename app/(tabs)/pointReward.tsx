@@ -72,31 +72,46 @@ export default function TabTwoScreen() {
   const user = useUser();
   const [toggleEyes, setToggleEyes] = useState<{ [key: string]: boolean }>({}); // Track toggle state for each user
   const [userBalances, setUserBalances] = useState<{ [key: string]: number }>({}); // Store balances for each user
-
+  const [displayedUsers, setDisplayedUsers] = useState<any[]>([]); // ข้อมูลที่แสดงผล
+  const [currentPage, setCurrentPage] = useState(1); // หน้าปัจจุบัน
   //console.log('user in pointReward', user);
   // Admin action states
   const [actionType, setActionType] = useState<'credit' | 'debit'>('credit');
   const [phone, setPhone] = useState('');
   //console.log('point history', history);
   //console.log('point balance', point);
-
+  const [displayedHistory, setDisplayedHistory] = useState<any[]>([]); // ข้อมูลที่แสดงผลใน History
+  const [currentHistoryPage, setCurrentHistoryPage] = useState(1); // หน้าปัจจุบันของ History
+  const [displayedAdminHistory, setDisplayedAdminHistory] = useState<any[]>([]); // ข้อมูลที่แสดงผลใน History of Action
+  const [currentAdminHistoryPage, setCurrentAdminHistoryPage] = useState(1); // หน้าปัจจุบันของ History of Action
 
   useEffect(() => {
     setLoading(true);
     Promise.all([
       getMyPointBalance(),
-      getMyPointLedger({ limit: '10' })
+      getMyPointLedger({ limit: '100' }) // ดึงข้อมูลทั้งหมด
     ])
       .then(([balanceData, ledgerData]) => {
         setPoint(balanceData); // <-- set full data object
         setHistory(ledgerData?.items ?? []);
+        setDisplayedHistory(ledgerData?.items?.slice(0, 20) ?? []); // แสดงผลเฉพาะ 20 รายการแรก
       })
       .catch(() => {
         setPoint({ balance: 0 }); // <-- fallback to object with balance
         setHistory([]);
+        setDisplayedHistory([]);
       })
       .finally(() => setLoading(false));
   }, []);
+  const handleHistoryPageChange = (page: number) => {
+    const startIndex = (page - 1) * 20;
+    const endIndex = startIndex + 20;
+    setDisplayedHistory(history.slice(startIndex, endIndex)); // อัปเดตข้อมูลที่แสดงผล
+    setCurrentHistoryPage(page);
+  };
+
+
+
   // Fetch user list when adminTab is 'dashboard' and adminMode is true
   useEffect(() => {
     if (adminMode && adminTab === 'dashboard') {
@@ -118,12 +133,27 @@ export default function TabTwoScreen() {
   useEffect(() => {
     if (adminMode && adminTab === 'history') {
       setAdminHistoryLoading(true);
-      getLatestPointLedger({ limit: '20' })
-        .then(data => setAdminHistory(Array.isArray(data) ? data : [])) // <-- FIX HERE
-        .catch(() => setAdminHistory([]))
+      getLatestPointLedger({ limit: '100' }) // ดึงข้อมูลทั้งหมด
+        .then(data => {
+          const historyData = Array.isArray(data) ? data : [];
+          setAdminHistory(historyData);
+          setDisplayedAdminHistory(historyData.slice(0, 20)); // แสดงผลเฉพาะ 20 รายการแรก
+        })
+        .catch(() => {
+          setAdminHistory([]);
+          setDisplayedAdminHistory([]);
+        })
         .finally(() => setAdminHistoryLoading(false));
     }
   }, [adminMode, adminTab]);
+
+  const handleAdminHistoryPageChange = (page: number) => {
+    const startIndex = (page - 1) * 20; // เปลี่ยนจาก 5 เป็น 20
+    const endIndex = startIndex + 20; // เปลี่ยนจาก 5 เป็น 20
+    setDisplayedAdminHistory(adminHistory.slice(startIndex, endIndex)); // อัปเดตข้อมูลที่แสดงผล
+    setCurrentAdminHistoryPage(page);
+  };
+
   //console.log('adminHistory', adminHistory);
   // New function for confirm button
   const handleConfirmAdjustPoint = async () => {
@@ -179,6 +209,101 @@ export default function TabTwoScreen() {
       }
     }
   };
+
+  useEffect(() => {
+    if (adminMode && adminTab === 'dashboard') {
+      setUserListLoading(true);
+      const fetchAllUsers = async () => {
+        let allUsers = [];
+        let currentPage = 1;
+        let hasMore = true;
+
+        while (hasMore) {
+          try {
+            const data = await getUserList({
+              search: '', // ดึงข้อมูลทั้งหมด
+              page: currentPage.toString(),
+              limit: '20', // ดึงทีละ 20 รายการ
+              sortBy: 'createdAt',
+              sortDir: 'desc',
+            });
+
+            allUsers = [...allUsers, ...(data?.items || [])];
+            hasMore = data?.items?.length === 20; // ถ้าจำนวนที่ดึงมาเท่ากับ limit แสดงว่ายังมีข้อมูลเหลือ
+            currentPage++;
+          } catch {
+            hasMore = false;
+          }
+        }
+
+        setUserList(allUsers); // เก็บข้อมูลทั้งหมด
+        setDisplayedUsers(allUsers.slice(0, 20)); // แสดงผลแค่ 20 รายการแรก
+        setUserListLoading(false);
+      };
+
+      fetchAllUsers();
+    }
+  }, [adminMode, adminTab]);
+
+  // ฟังก์ชันสำหรับการค้นหา
+  const handleSearch = (searchPhone: string) => {
+    setPhone(searchPhone); // อัปเดตเบอร์โทรที่ค้นหา
+    const filteredUsers = userList.filter(user =>
+      user.phone?.includes(searchPhone.trim())
+    );
+    setDisplayedUsers(filteredUsers.slice(0, 20)); // แสดงผลเฉพาะ 20 รายการแรกที่ตรงกับการค้นหา
+    setCurrentPage(1); // รีเซ็ตหน้าเป็นหน้าแรก
+  };
+
+  // ฟังก์ชันสำหรับเปลี่ยนหน้า pagination
+  const handlePageChange = (page: number) => {
+    const startIndex = (page - 1) * 20;
+    const endIndex = startIndex + 20;
+    const filteredUsers = userList.filter(user =>
+      phone.trim() === '' ? true : user.phone?.includes(phone.trim())
+    );
+    setDisplayedUsers(filteredUsers.slice(startIndex, endIndex)); // อัปเดตข้อมูลที่แสดงผล
+    setCurrentPage(page);
+  };
+  const generatePagination = (totalPages: number, currentPage: number) => {
+    const pagination = [];
+    const maxVisiblePages = 2; // จำนวนหน้าที่แสดงผลก่อนและหลังหน้าปัจจุบัน
+
+    if (totalPages <= 6) {
+      // กรณีที่จำนวนหน้าทั้งหมด <= 6 แสดงทุกหน้า
+      for (let i = 1; i <= totalPages; i++) {
+        pagination.push(i);
+      }
+    } else {
+      // กรณีที่จำนวนหน้ามากกว่า 6
+      if (currentPage <= maxVisiblePages + 1) {
+        // แสดงหน้าแรก ๆ
+        for (let i = 1; i <= maxVisiblePages + 2; i++) {
+          pagination.push(i);
+        }
+        pagination.push('...');
+        pagination.push(totalPages);
+      } else if (currentPage >= totalPages - maxVisiblePages) {
+        // แสดงหน้าสุดท้าย
+        pagination.push(1);
+        pagination.push('...');
+        for (let i = totalPages - (maxVisiblePages + 1); i <= totalPages; i++) {
+          pagination.push(i);
+        }
+      } else {
+        // แสดงหน้าตรงกลาง
+        pagination.push(1);
+        pagination.push('...');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pagination.push(i);
+        }
+        pagination.push('...');
+        pagination.push(totalPages);
+      }
+    }
+
+    return pagination;
+  };
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
 
@@ -212,10 +337,10 @@ export default function TabTwoScreen() {
             <View style={styles.historyList}>
               {loading ? (
                 <Text>Loading...</Text>
-              ) : history.length === 0 ? (
+              ) : displayedHistory.length === 0 ? (
                 <Text>ไม่มีประวัติ</Text>
               ) : (
-                history.map(item => {
+                displayedHistory.map(item => {
                   const isDebit = item.action === 'debit';
                   return (
                     <View key={item.id} style={styles.historyItem}>
@@ -239,6 +364,21 @@ export default function TabTwoScreen() {
                   );
                 })
               )}
+            </View>
+            <View style={styles.pagination}>
+              {Math.ceil(history.length / 20) > 1 &&
+                generatePagination(Math.ceil(history.length / 20), currentHistoryPage).map((page, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.pageButton,
+                      currentHistoryPage === page && styles.pageButtonActive,
+                    ]}
+                    onPress={() => typeof page === 'number' && handleHistoryPageChange(page)}
+                  >
+                    <Text style={styles.pageButtonText}>{page}</Text>
+                  </TouchableOpacity>
+                ))}
             </View>
           </>
         ) : (
@@ -264,7 +404,7 @@ export default function TabTwoScreen() {
                     style={styles.input}
                     value={phone}
                     onChangeText={val => {
-                      setPhone(val);
+                      handleSearch(val)
                       setAdminTab('dashboard'); // Switch to dashboard tab
                     }}
                     placeholder="กรอกเบอร์โทร"
@@ -359,7 +499,7 @@ export default function TabTwoScreen() {
                   <Text style={{ padding: 8, color: '#999' }}>ไม่มีข้อมูลผู้ใช้</Text>
                 ) : (
                   // Filter userList by phone number
-                  userList
+                  displayedUsers
                     .filter(user =>
                       phone.trim() === '' ? true : user.phone?.includes(phone.trim())
                     )
@@ -408,11 +548,28 @@ export default function TabTwoScreen() {
                                 </Text>
                               </View>
                             )}
-                          </View>                        </View>
+                          </View>
+                        </View>
                       </TouchableOpacity>
 
                     ))
+
                 )}
+                <View style={styles.pagination}>
+                  {Math.ceil(userList.length / 20) > 1 &&
+                    generatePagination(Math.ceil(userList.length / 20), currentPage).map((page, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        style={[
+                          styles.pageButton,
+                          currentPage === page && styles.pageButtonActive,
+                        ]}
+                        onPress={() => typeof page === 'number' && handlePageChange(page)}
+                      >
+                        <Text style={styles.pageButtonText}>{page}</Text>
+                      </TouchableOpacity>
+                    ))}
+                </View>
               </View>
             ) : (
               <View style={styles.adminSection}>
@@ -427,7 +584,7 @@ export default function TabTwoScreen() {
                 {historyDashboard.length === 0 ? (
                   <Text style={{ padding: 8, color: '#999' }}>ไม่มีประวัติ</Text>
                 ) : (
-                  adminHistory.map(item => (
+                  displayedAdminHistory.map(item => (
                     <View key={item.id} style={styles.tableRow}>
                       <Text style={[styles.tableCell, { flex: 1, color: item.action === 'debit' ? '#D32F2F' : '#00796B' }]}>
                         {item.action === 'debit' ? 'ลดแต้ม' : 'เพิ่มแต้ม'}
@@ -438,7 +595,23 @@ export default function TabTwoScreen() {
                       <Text style={[styles.tableCell, { flex: 3 }]}>{item.reason || '-'}</Text>
                     </View>
                   ))
+
                 )}
+                <View style={styles.pagination}>
+                  {Math.ceil(adminHistory.length / 20) > 1 && // เปลี่ยนจาก 5 เป็น 20
+                    generatePagination(Math.ceil(adminHistory.length / 20), currentAdminHistoryPage).map((page, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        style={[
+                          styles.pageButton,
+                          currentAdminHistoryPage === page && styles.pageButtonActive,
+                        ]}
+                        onPress={() => typeof page === 'number' && handleAdminHistoryPageChange(page)}
+                      >
+                        <Text style={styles.pageButtonText}>{page}</Text>
+                      </TouchableOpacity>
+                    ))}
+                </View>
               </View>
             )}
           </>
@@ -647,5 +820,23 @@ const styles = StyleSheet.create({
   },
   tabBtnTextActive: {
     color: '#fff',
+  },
+  pagination: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 16,
+  },
+  pageButton: {
+    padding: 8,
+    marginHorizontal: 4,
+    backgroundColor: '#eee',
+    borderRadius: 4,
+  },
+  pageButtonActive: {
+    backgroundColor: '#E91E63',
+  },
+  pageButtonText: {
+    color: '#333',
+    fontWeight: 'bold',
   },
 });

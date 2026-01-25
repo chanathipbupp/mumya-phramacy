@@ -850,3 +850,218 @@ export async function deleteUser(): Promise<any> {
 
   return res.json();
 }
+
+
+// Get Medicines
+export async function getMedicines(params: {
+  q?: string;
+  isActive?: boolean;
+  page?: number;
+  limit?: number;
+}): Promise<any> {
+  const searchParams = new URLSearchParams(params as Record<string, string>).toString();
+  const url = `${API_URL}/medicines?${searchParams}`;
+  const authToken = await getAuthToken(); // <-- await here!
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to fetch medicines');
+  }
+  return res.json();
+}
+
+// Get Order History
+export async function getOrderHistory(params: {
+  orderStatus?: 'Completed' | 'Cancelled';
+  page: string;
+  limit: string;
+}): Promise<any> {
+  const searchParams = new URLSearchParams(params as Record<string, string>).toString();
+  const url = `${API_URL}/orders?${searchParams}`;
+  const authToken = await getAuthToken(); // <-- await here!
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to fetch order history');
+  }
+  return res.json();
+}
+
+// Add a new medicine
+export async function addMedicine(data: {
+  productCode?: string;
+  medicineName: string;
+  genericName?: string;
+  category?: string[];
+  content: any;
+  type?: string;
+  usageTemplate?: {
+    route?: string;
+    frequency?: string;
+    mealRelation?: string[];
+    timing?: string[];
+    caution?: string[];
+  };
+  dosageForm?: string;
+  imageUrl?: string;
+  price?: number;
+  note?: string;
+  isActive: boolean;
+}): Promise<any> {
+  const url = `${API_URL}/medicines`;
+  const authToken = await getAuthToken();
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to add medicine');
+  }
+  return res.json();
+}
+
+// Update an existing medicine
+export async function updateMedicine(mid: string, data: {
+  productCode?: string;
+  medicineName: string;
+  genericName?: string;
+  category?: string[];
+  content: any;
+  type?: string;
+  usageTemplate?: {
+    route?: string;
+    frequency?: string;
+    mealRelation?: string[];
+    timing?: string[];
+    caution?: string[];
+  };
+  dosageForm?: string;
+  imageUrl?: string;
+  price?: number;
+  note?: string;
+  isActive: boolean;
+}): Promise<any> {
+  const url = `${API_URL}/medicines/${mid}`;
+  const authToken = await getAuthToken();
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to update medicine');
+  }
+  return res.json();
+}
+
+// Create a new order
+export async function createOrder(data: {
+  userId: string;
+  pointReceived: number;
+  medicineItems: {
+    medicineId: string;
+    medicineName?: string;
+    quantity: number;
+    usageCustomized: boolean;
+    usage: {
+      route: string;
+      frequency: string;
+      timing: string[];
+      mealRelation: string[];
+      caution: string[];
+      dosePerTime: string;
+    };
+    specialUsageInstructions: string;
+    expiryDate: string;
+  }[];
+}): Promise<any> {
+  const url = `${API_URL}/orders`;
+  const authToken = await getAuthToken();
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to create order');
+  }
+  return res.json();
+}
+
+// Update an existing order
+export async function updateOrder(oid: string, data: {
+  userId: string;
+  medicineItems: {
+    medicineId: string;
+    quantity: number;
+    usageCustomized: boolean;
+    usage: {
+      route: string;
+      frequency: string;
+      timing: string[];
+      mealRelation: string[];
+      caution: string[];
+      dosePerTime: string;
+    };
+    specialUsageInstructions: string;
+    expiryDate: string;
+    pointReceived: number;
+  }[];
+  reason: string;
+  pointAdjust: boolean;
+  changeCustomer: boolean;
+}): Promise<any> {
+  const url = `${API_URL}/orders/${oid}`;
+  const authToken = await getAuthToken();
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to update order');
+  }
+  return res.json();
+}
+
+// Get Order Detail
+export async function getOrderDetail(oid: string): Promise<any> {
+  const url = `${API_URL}/orders/${oid}`;
+  const authToken = await getAuthToken(); // ดึง token สำหรับการยืนยันตัวตน
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`, // เพิ่ม token ใน header
+    },
+  });
+
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to fetch order details'); // จัดการ error
+  }
+
+  return res.json(); // แปลง response เป็น JSON และส่งกลับ
+}

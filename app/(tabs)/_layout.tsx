@@ -15,6 +15,7 @@ import DailyRewardPopup from '../../components/DailyRewardPopup'; // Adjust path
 import { getDailyLoginStatus, dailyLogin,getUserProfile } from '../../composables/fetchAPI'; // Import endpoints
 import Toast from 'react-native-toast-message'; // Import Toast
 import { Alert } from 'react-native';
+import MedicineTabIcon from '../components/MedicineTabIcon';
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const router = useRouter();
@@ -107,6 +108,15 @@ export default function TabLayout() {
               <ArticleTabIcon color={color} size={size} />
             ),
             tabBarLabel: 'บทความ',
+          }}
+        />
+         <Tabs.Screen
+          name="medicine"
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <MedicineTabIcon color={color} size={size} />
+            ),
+            tabBarLabel: 'จ่ายยา',
           }}
         />
         <Tabs.Screen

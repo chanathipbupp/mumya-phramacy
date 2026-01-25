@@ -11,8 +11,8 @@ import { useUser } from '../../components/UserProvider';
 const CATEGORIES = [
   { label: 'All', value: '' },
   { label: 'Announcement', value: 'announcement' },
+  { label: 'Promotion', value: 'promo' },
   { label: 'Maintenance', value: 'maintenance' },
-  { label: 'Promo', value: 'promo' },
   { label: 'System', value: 'system' },
 ];
 
