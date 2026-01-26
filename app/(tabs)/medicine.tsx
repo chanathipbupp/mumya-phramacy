@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useUser } from '../../components/UserProvider';
-import { addMedicine, createOrder, getMedicines, getOrderHistory, getUserList, updateMedicine, getOrderDetail } from '../../composables/fetchAPI';
+import { addMedicine,getOrderHistoryMe, createOrder, getMedicines, getOrderHistory, getUserList, updateMedicine, getOrderDetail } from '../../composables/fetchAPI';
 import AddEditMedicineForm from '../medicineComponents/AddEditMedicineForm';
 import AdminDispenseList from '../medicineComponents/AdminDispenseList';
 import MedicineItem from '../medicineComponents/MedicineItem';
@@ -105,34 +105,44 @@ export default function MedicineScreen() {
       alert('ไม่สามารถดึงข้อมูลคำสั่งซื้อได้');
     }
   };
-  const fetchMedicines = async () => {
-    try {
-      setLoading(true);
-      const medicinesData = await getMedicines({ q: '', isActive: true, page: 1, limit: 10 });
-      setMedicines(medicinesData.items);
-    } catch (error) {
-      console.error('Error fetching medicines:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const fetchOrders = async (page = 1) => {
-    try {
-      setLoading(true);
-      const ordersData = await getOrderHistory({ page: page.toString(), limit: '10' }); // ใช้ page และ limit
-      if (ordersData.items.length > 0) {
-        setOrders((prevOrders) => [...prevOrders, ...ordersData.items]); // รวมรายการใหม่กับรายการเดิม
-        setCurrentOrderPage(page); // อัปเดตหน้าปัจจุบัน
-      } else {
-        setHasMoreOrders(false); // ไม่มีหน้าเพิ่มเติม
-      }
-    } catch (error) {
-      console.error('Error fetching orders:', error);
-    } finally {
-      setLoading(false);
+const fetchMedicines = async (query = '') => {
+  try {
+    setLoading(true);
+    const medicinesData = await getMedicines({ q: query, isActive: true, page: 1, limit: 10 });
+    setMedicines(medicinesData.items);
+  } catch (error) {
+    console.error('Error fetching medicines:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+const fetchOrders = async (page = 1) => {
+  try {
+    setLoading(true);
+    let ordersData;
+
+    if (user?.user?.role === 'admin') {
+      // ใช้ endpoint สำหรับ admin
+      ordersData = await getOrderHistory({ page: page.toString(), limit: '10' });
+    } else {
+      // ใช้ endpoint สำหรับ user
+      ordersData = await getOrderHistoryMe({ page: page.toString(), limit: '10' });
     }
-  };
+
+    if (ordersData.items.length > 0) {
+      setOrders((prevOrders) => [...prevOrders, ...ordersData.items]); // รวมรายการใหม่กับรายการเดิม
+      setCurrentOrderPage(page); // อัปเดตหน้าปัจจุบัน
+    } else {
+      setHasMoreOrders(false); // ไม่มีหน้าเพิ่มเติม
+    }
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+  } finally {
+    setLoading(false);
+  }
+};
   // ฟังก์ชันสำหรับโหลดหน้าเพิ่มเติม
   const loadMoreOrders = () => {
     if (hasMoreOrders && !loading) {
@@ -530,7 +540,7 @@ export default function MedicineScreen() {
                     </View>
                     <View style={styles.oneThird}>
 
-                      <SearchableMedicineList medicines={medicines} onSelectMedicine={handleMedicineSelect} />
+                      <SearchableMedicineList medicines={medicines}   fetchMedicines={fetchMedicines} onSelectMedicine={handleMedicineSelect} />
                     </View>
 
                   </View>
@@ -565,6 +575,7 @@ export default function MedicineScreen() {
                       <SearchableMedicineList
                         medicines={medicines}
                         onSelectMedicine={setSelectedMedicine}
+                        fetchMedicines={fetchMedicines} 
                         onAddMedicine={handleAddMedicineToDispenseList} // ส่งฟังก์ชันนี้ไป
                         isTab={adminTab}
                       />

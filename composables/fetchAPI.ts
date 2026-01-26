@@ -1065,3 +1065,24 @@ export async function getOrderDetail(oid: string): Promise<any> {
 
   return res.json(); // แปลง response เป็น JSON และส่งกลับ
 }
+// Get Order History Me
+export async function getOrderHistoryMe(params: {
+  orderStatus?: 'Completed' | 'Cancelled';
+  page: string;
+  limit: string;
+}): Promise<any> {
+  const searchParams = new URLSearchParams(params as Record<string, string>).toString();
+  const url = `${API_URL}/orders/history/me${searchParams ? `?${searchParams}` : ''}`;
+  const authToken = await getAuthToken(); // ดึง token สำหรับการยืนยันตัวตน
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to fetch order history.');
+  }
+  return res.json();
+}

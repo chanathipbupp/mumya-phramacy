@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import MedicineItem from './MedicineItem';
 
@@ -31,10 +31,24 @@ interface SearchableMedicineListProps {
   onSelectMedicine: (medicine: Medicine) => void;
   onAddMedicine?: (medicine: Medicine) => void; // เพิ่มฟังก์ชันสำหรับเพิ่มยา
   isTab?: string;
+  fetchMedicines: (query: string) => void; // เพิ่ม prop สำหรับเรียก API
+
 }
 
-const SearchableMedicineList: React.FC<SearchableMedicineListProps> = ({ medicines, onSelectMedicine, onAddMedicine, isTab }) => {
+const SearchableMedicineList: React.FC<SearchableMedicineListProps> = ({ medicines, onSelectMedicine, onAddMedicine, isTab, fetchMedicines }) => {
   const [searchQuery, setSearchQuery] = useState('');
+
+
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      fetchMedicines(searchQuery); // เรียก API เมื่อ searchQuery เปลี่ยนแปลง
+    }, 300); // เพิ่ม debounce 300ms เพื่อลดการเรียก API บ่อยเกินไป
+
+    return () => clearTimeout(delayDebounce); // ล้าง timeout เมื่อ searchQuery เปลี่ยน
+  }, [searchQuery]);
+
+
+
   const handleAddMedicine = (medicine: Medicine) => {
   if (onAddMedicine) {
     const existingMedicine = medicines.find((m) => m.id === medicine.id);
@@ -51,11 +65,7 @@ const SearchableMedicineList: React.FC<SearchableMedicineListProps> = ({ medicin
     }
   }
 };
-  const filteredMedicines = medicines?.filter((medicine) => {
-    const name = medicine?.medicineName || ''; // ใช้ medicineName แทน name
-    const query = searchQuery || '';
-    return name.toLowerCase().includes(query.toLowerCase());
-  }) || [];
+
   return (
     <View style={styles.container}>
       <TextInput
@@ -67,7 +77,7 @@ const SearchableMedicineList: React.FC<SearchableMedicineListProps> = ({ medicin
         <View style={styles.flatListContainer}>
 
       <FlatList
-        data={filteredMedicines}
+        data={medicines}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.medicineItemContainer}>
