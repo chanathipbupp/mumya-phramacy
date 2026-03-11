@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, Text, ScrollView, Image, TextInput, TouchableOpacity } from 'react-native';
+import { StyleSheet,View, Text, ScrollView, Image, TextInput, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import ArticleItem from '../../components/ArticleItem';
 import { getArticles } from '../../composables/fetchAPI';
 import { useUser } from '../../components/UserProvider'
 import ProfileBar from '../../components/ProfileBar';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function ArticleScreen() {
   const router = useRouter();
@@ -51,8 +52,13 @@ export default function ArticleScreen() {
   const userProfile = user?.user || {};
 
   return (
-    <View style={{ flex: 1, padding: 24, backgroundColor: '#F5F5F5' }}>
-
+    <View style={{ flex: 1, padding: 24 }}>
+      <LinearGradient
+        colors={['#eef9ff', '#f0faff', '#c1ced2']}
+        style={StyleSheet.absoluteFill}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      />
 
       {/* Top Bar */}
       <View style={{

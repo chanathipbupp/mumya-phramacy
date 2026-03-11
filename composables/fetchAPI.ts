@@ -1,8 +1,8 @@
 // import { getToken } from './tokenManager';
 
 // const API_URL = 'https://api.dev.mumya.kasidate.me/api';
-const API_URL = 'https://mumyapharmacy.app/api';
-
+// const API_URL = 'https://mumyapharmacy.app/api';
+const API_URL = 'https://mumya.api-playground.memolab.me/api'
 // const authToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2OGJjNTdlM2QxNWUwZDBkMTg5ZjYxMDciLCJlbWFpbCI6Im11bXlhcGhhcm1hY3kuYXBwQGdtYWlsLmNvbSIsInJvbGVzIjpbInN1cGVyYWRtaW4iLCJ1c2VyIiwiYWRtaW4iXSwiaWF0IjoxNzU3NDE2ODE3LCJleHAiOjE3NjAwMDg4MTd9.YrW73p7ebv1LjsR5ftx4CIJKv-3AhFZKF5cyT5xy8tI'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -1085,4 +1085,212 @@ export async function getOrderHistoryMe(params: {
     await handleApiError(res, 'Failed to fetch order history.');
   }
   return res.json();
+}
+
+// Get Rewards
+export async function getRewards(params?: { page?: number; limit?: number; search?: string; sort?:string; desc?: number }): Promise<any> {
+  const authToken = await getAuthToken();
+  const queryParams = new URLSearchParams(params as Record<string, string>).toString();
+  const url = `${API_URL}/rewards${queryParams ? `?${queryParams}` : ''}`;
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to fetch rewards');
+  }
+  return res.json();
+}
+
+// Get Rewards Admin
+export async function getRewardsAdmin(params?: { page?: number; limit?: number; search?: string,type?:string; isActive?:boolean; sort?:string; desc?: number }): Promise<any> {
+  const authToken = await getAuthToken();
+  const queryParams = new URLSearchParams(params as Record<string, string>).toString();
+  const url = `${API_URL}/rewards/all${queryParams ? `?${queryParams}` : ''}`;
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to fetch rewards');
+  }
+  return res.json();
+}
+
+// Create a Reward
+export async function createReward(data: {
+  title: string;
+  description?: string;
+  type: string;
+  discountAmount?: number;
+  pointCost: number;
+  imageUrl?: string;
+  isActive?: boolean;
+  redemptionLimitPerUser?: number;
+}): Promise<any> {
+  const url = `${API_URL}/rewards`;
+  const authToken = await getAuthToken();
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to create reward');
+  }
+  return res.json();
+}
+
+// Update a Reward
+export async function updateReward(rid: string, data: {
+  description?: string;
+  redemptionLimitPerUser?: number;
+  termsAndConditions?: string;
+  isActive?: boolean;
+  endDate?: string;
+}): Promise<any> {
+  const url = `${API_URL}/rewards/${rid}`;
+  const authToken = await getAuthToken();
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to update reward');
+  }
+  return res.json();
+}
+
+// Delete a Reward
+export async function deleteReward(rid: string): Promise<any> {
+  const url = `${API_URL}/rewards/${rid}`;
+  const authToken = await getAuthToken();
+  const res = await fetch(url, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to delete reward');
+  }
+  return res.json();
+}
+
+export async function getMyRedemptions(params?: { page?: number; limit?: number; status?: string; type?: string }): Promise<any> {
+  const authToken = await getAuthToken();
+  const queryParams = new URLSearchParams(params as Record<string, string>).toString();
+  const url = `${API_URL}/redemptions/me${queryParams ? `?${queryParams}` : ''}`;
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${authToken}`,
+      'Content-Type': 'application/json',
+    },
+  });
+  if (!response.ok) {
+    await handleApiError(response, 'Failed to fetch my redemptions');
+  }
+  return response.json();
+}
+
+export async function getAllRedemptions(params?: { page?: number; limit?: number; type?: string }): Promise<any> {
+  const authToken = await getAuthToken();
+  const queryParams = new URLSearchParams(params as Record<string, string>).toString();
+  const url = `${API_URL}/redemptions${queryParams ? `?${queryParams}` : ''}`;
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${authToken}`,
+      'Content-Type': 'application/json',
+    },
+  });
+  if (!response.ok) {
+    await handleApiError(response, 'Failed to fetch all redemptions');
+  }
+  return response.json();
+}
+
+export async function redeemReward(data: { rewardId: string }): Promise<any> {
+  const url = `${API_URL}/redemptions`;
+  const authToken = await getAuthToken();
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to redeem reward');
+  }
+  return res.json();
+}
+
+export async function verifyRedemptionCode(shortCode: string): Promise<any> {
+  const url = `${API_URL}/redemptions/verify`;
+  const authToken = await getAuthToken();
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+    body: JSON.stringify({ shortCode }), // ห่อค่า shortCode ในออบเจกต์
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to verify redemption code');
+  }
+  return res.json();
+}
+
+export async function useRedemptionCode(shortCode: string): Promise<any> {
+  const url = `${API_URL}/redemptions/use`;
+  const authToken = await getAuthToken();
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+    body: JSON.stringify({ shortCode }), // ห่อค่า shortCode ในออบเจกต์
+  });
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to use redemption code');
+  }
+  return res.json();
+}
+
+export async function sendRewardAdmin(data: { rewardId: string; userId: string }): Promise<any> {
+  const url = `${API_URL}/redemptions/admin/send`;
+  const authToken = await getAuthToken(); // ดึง token สำหรับการยืนยันตัวตน
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+    body: JSON.stringify(data), // ส่งข้อมูล rewardId และ userId
+  });
+
+  if (!res.ok) {
+    await handleApiError(res, 'Failed to send reward');
+  }
+
+  return res.json(); // แปลง response เป็น JSON และส่งกลับ
 }

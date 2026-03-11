@@ -158,6 +158,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     lineHeight: 22,
+    fontFamily: 'Prompt-Regular'
   },
   imageWrapper: {
     width: 120,
@@ -172,6 +173,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 10,
+    fontFamily: 'Prompt-Regular'
   },
   imagePlaceholder: {
     position: 'absolute',
@@ -191,27 +193,32 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     paddingVertical: 4,
     position: 'relative',
+    fontFamily: 'Prompt-Regular'
   },
   title: {
     fontWeight: 'bold',
     fontSize: 18,
     marginBottom: 6,
+    fontFamily: 'Prompt-Regular'
   },
   contentPreview: {
     fontSize: 12,
     color: '#444',
     marginBottom: 2,
     minHeight: 28,
+    fontFamily: 'Prompt-Regular'
   },
   dateType: {
     fontSize: 12,
     color: '#666',
     marginBottom: 8,
+    fontFamily: 'Prompt-Regular'
   },
   typeText: {
     fontSize: 12,
     color: '#888',
     marginBottom: 8,
+    fontFamily: 'Prompt-Regular'
   },
   editButtonWrapper: {
     position: 'absolute',
@@ -222,5 +229,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     overflow: 'hidden',
     backgroundColor: '#0097a7',
+    fontFamily: 'Prompt-Regular'
   },
 });

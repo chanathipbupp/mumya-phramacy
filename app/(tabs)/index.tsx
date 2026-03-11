@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { StyleSheet, View, Text, FlatList, TouchableOpacity, ActivityIndicator, TextInput, Image, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, FlatList, TouchableOpacity, ActivityIndicator, TextInput, ScrollView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Item from '../../components/item';
@@ -7,13 +7,17 @@ import ProfileBar from '../../components/ProfileBar';
 import { getNews } from '../../composables/fetchAPI';
 import { useFocusEffect } from '@react-navigation/native';
 import { useUser } from '../../components/UserProvider';
+import AnnounceIcon from '../components/AnnounuceIcon';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useFonts } from 'expo-font';
+import AppLoading from 'expo-app-loading'; // ใช้สำหรับแสดงหน้ารอโหลดฟอนต์
 
 const CATEGORIES = [
-  { label: 'All', value: '' },
-  { label: 'Announcement', value: 'announcement' },
-  { label: 'Promotion', value: 'promo' },
-  { label: 'Maintenance', value: 'maintenance' },
-  { label: 'System', value: 'system' },
+  { label: 'All', value: '', name: 'ทั้งหมด' },
+  { label: 'Announcement', value: 'announcement', name: 'ประกาศ' },
+  { label: 'Promotion', value: 'promo', name: 'โปรโมชั่น' },
+  { label: 'Maintenance', value: 'maintenance', name: 'การบำรุงรักษา' },
+  { label: 'System', value: 'system', name: 'ระบบ' },
 ];
 
 export default function HomeScreen() {
@@ -29,6 +33,16 @@ export default function HomeScreen() {
   const user = useUser();
   const userProfile = user?.user || {};
 
+
+  const [fontsLoaded] = useFonts({
+    'Prompt-Regular': require('../../assets/fonts/Prompt-Regular.ttf'),
+    'Prompt-Bold': require('../../assets/fonts/Prompt-Bold.ttf'),
+  });
+
+  if (!fontsLoaded) {
+    return <AppLoading />; // แสดงหน้ารอโหลดฟอนต์
+  }
+
   const handleCreateNews = () => {
     router.push({
       pathname: '/AddEditNews',
@@ -36,12 +50,10 @@ export default function HomeScreen() {
     });
   };
 
-  // Move fetchNews outside useFocusEffect so you can call it anytime
   const fetchNews = async () => {
     setLoading(true);
     try {
       const res = await getNews({ page: '1', limit: '10' });
-      // console.log('Fetched news:', res); // Debugging line
       const fetched = res.data || res;
       const items = Array.isArray(fetched) ? fetched : fetched.items || [];
       setNews(items);
@@ -56,15 +68,14 @@ export default function HomeScreen() {
 
   useFocusEffect(
     React.useCallback(() => {
-      // console.log('User on HomeScreen:', user);
       fetchNews();
     }, [])
   );
 
-  // Filter news by title and category
   const filteredNews = useMemo(() => {
     return news.filter(item => {
-      const matchTitle = item.title.toLowerCase().includes(search.toLowerCase());
+      const title = item.title || '';
+      const matchTitle = title.toLowerCase().includes(search.toLowerCase());
       const matchCategory = selectedCategory ? item.type === selectedCategory : true;
       return matchTitle && matchCategory;
     });
@@ -89,83 +100,102 @@ export default function HomeScreen() {
   };
 
   return (
-    <>
-      <View style={styles.outer}>
-        <View style={styles.container}>
+    <View style={styles.outer}>
+      {/* 1. ใส่ Gradient พื้นหลัง */}
+      <LinearGradient
+        colors={['#eef9ff', '#f0faff', '#c1ced2']}
+        style={StyleSheet.absoluteFill}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      />
 
-          {/* <View style={styles.headerRow}>
-            <Text style={styles.header}>ข่าวสาร</Text>
+      <View style={styles.container}>
 
-          </View> */}
-
-          {/* Top Bar */}
-          <View style={styles.topBar}>
-
-            <View style={{ flex: 1, marginLeft: 12 }}>
-              <ProfileBar
-                avatarUrl={userProfile.avatarUrl || userProfile.picture}
-                name={userProfile.name || userProfile.displayName || ''}
-              />            </View>
-            {user?.user?.role?.toLowerCase() === 'admin' &&
-              <TouchableOpacity style={styles.bellWrapper}>
-                <TouchableOpacity style={styles.createButton} onPress={handleCreateNews}>
-                  <Text style={styles.createButtonText}>Create News</Text>
-                </TouchableOpacity>
-              </TouchableOpacity>
-            }
+        {/* Header Section */}
+        <View style={styles.headerSection}>
+          <View style={styles.profileContainer}>
+            <ProfileBar
+              avatarUrl={userProfile.avatarUrl || userProfile.picture}
+              name={userProfile.name || userProfile.displayName || 'Guest'}
+            />
           </View>
+          {user?.user?.role?.toLowerCase() === 'admin' && (
+            <TouchableOpacity style={styles.createButton} onPress={handleCreateNews}>
+              <Ionicons name="add-circle-outline" size={20} color="#fff" />
+              <Text style={styles.createButtonText}>New Post</Text>
+            </TouchableOpacity>
+          )}
+        </View>
 
-          {/* Search Bar */}
+        {/* Search Bar */}
+        <View style={styles.searchWrapper}>
           <View style={styles.searchRow}>
-            <Ionicons name="search" size={20} color="#bbb" style={{ marginLeft: 12 }} />
+            <Ionicons name="search-outline" size={20} color="#999" style={{ marginLeft: 15 }} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search News"
+              placeholder="Search latest updates..."
+              placeholderTextColor="#999"
               value={search}
               onChangeText={setSearch}
             />
-            {/* <Ionicons name="filter-outline" size={22} color="#bbb" style={{ marginRight: 12 }} /> */}
+            {search.length > 0 && (
+              <TouchableOpacity onPress={() => setSearch('')} style={{ marginRight: 12 }}>
+                <Ionicons name="close-circle" size={18} color="#ccc" />
+              </TouchableOpacity>
+            )}
           </View>
+        </View>
 
-          {/* Category Chips */}
-          <View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.chipRow}
-              showsVerticalScrollIndicator={false}
-            >
-              {CATEGORIES.map((cat, idx) => (
+        {/* Categories */}
+        <View style={styles.categoryWrapper}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.chipRow}
+          >
+            {CATEGORIES.map((cat) => {
+              const isActive = selectedCategory === cat.value;
+              return (
                 <TouchableOpacity
                   key={cat.value}
                   style={[
-                    styles.chip,
-                    selectedCategory === cat.value && styles.chipActive,
-                    idx === CATEGORIES.length - 1 && { marginRight: 0 },
+                    styles.categoryTile,
+                    isActive && styles.categoryTileActive,
                   ]}
                   onPress={() => {
                     flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
                     setSelectedCategory(cat.value);
                   }}
                 >
-                  <Text style={[
-                    styles.chipText,
-                    selectedCategory === cat.value && styles.chipTextActive,
-                  ]}>
-                    {cat.label}
+                  <AnnounceIcon />
+
+                  <Text
+                    style={[
+                      styles.tileText,
+                      isActive && styles.tileTextActive,
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {cat.name}
                   </Text>
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
+              );
+            })}
+          </ScrollView>
+        </View>
+
+        {/* News List */}
+        {loading ? (
+          <View style={styles.centerLoader}>
+            <ActivityIndicator size="large" color="#0097a7" />
           </View>
-          {loading ? (
-            <ActivityIndicator size="large" color="#5ccbffff" style={{ marginTop: 40 }} />
-          ) : (
-            <FlatList
-              ref={flatListRef}
-              data={filteredNews}
-              keyExtractor={(item) => item.id || item._id}
-              renderItem={({ item }) => (
+        ) : (
+          <FlatList
+            ref={flatListRef}
+            data={filteredNews}
+            keyExtractor={(item) => item.id || item._id}
+            renderItem={({ item }) => (
+              <View style={styles.itemWrapper}>
                 <Item
                   id={item.id || item._id}
                   slug={item.slug || item._slug}
@@ -178,154 +208,217 @@ export default function HomeScreen() {
                   onDeleted={fetchNews}
                   role={user?.user?.role}
                 />
-              )}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingBottom: 16 }}
-              ListEmptyComponent={
-                <Text style={{ textAlign: 'center', marginTop: 40, color: '#888' }}>
-                  ไม่พบข้อมูลข่าวสาร
-                </Text>
-              }
-              onEndReached={loadMore}
-              onEndReachedThreshold={0.2}
-              ListFooterComponent={
-                loadingMore ? (
-                  <ActivityIndicator size="small" color="#5ccbffff" style={{ marginVertical: 16 }} />
-                ) : null
-              }
-            />
-          )}
-        </View>
+              </View>
+            )}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.listContent}
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Ionicons name="newspaper-outline" size={60} color="#ddd" />
+                <Text style={styles.emptyText}>ไม่พบข้อมูลข่าวสารในขณะนี้</Text>
+              </View>
+            }
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.3}
+            ListFooterComponent={
+              loadingMore ? (
+                <ActivityIndicator size="small" color="#0097a7" style={{ marginVertical: 20 }} />
+              ) : <View style={{ height: 40 }} />
+            }
+          />
+        )}
       </View>
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   outer: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    // backgroundColor: '#F5F5F5',
     alignItems: 'center',
   },
+
   container: {
     flex: 1,
     width: '100%',
     maxWidth: 900, // Responsive max width for PC
-    padding: 24,
-    backgroundColor: '#F5F5F5',
+    padding: 12,
+    // backgroundColor: '#F5F5F5',
   },
-  banner: {
-    width: '100%',
-    height: 120,
-    marginBottom: 16,
-    maxWidth: 900,
-    alignSelf: 'center',
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 24,
-    alignSelf: 'center',
-  },
-  headerRow: {
+  headerSection: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 24,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 15,
+  },
+  profileContainer: {
+    flex: 1,
   },
   createButton: {
     backgroundColor: '#0097a7',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 12,
+    // Shadow สำหรับปุ่มให้ดูลอยออกมา
+    ...Platform.select({
+      ios: { shadowColor: '#0097a7', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 4 },
+      android: { elevation: 5 },
+    }),
   },
   createButtonText: {
     color: '#fff',
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: '700',
+    marginLeft: 6,
+    fontSize: 14,
+    fontFamily: 'Prompt-Bold', // ใช้ฟอนต์ที่โหลด
   },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 18,
-    marginBottom: 12,
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#eee',
-  },
-  greeting: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#222',
-  },
-  dateText: {
-    fontSize: 13,
-    color: '#888',
-    marginTop: 2,
-  },
-  bellWrapper: {
-    marginLeft: 12,
-    position: 'relative',
-  },
-  bellDot: {
-    position: 'absolute',
-    top: 2,
-    right: 2,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#FF5252',
-    borderWidth: 2,
-    borderColor: '#fff',
+  searchWrapper: {
+    paddingHorizontal: 20,
+    marginBottom: 10,
   },
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 18,
-    marginHorizontal: 18,
-    marginBottom: 10,
-    height: 44,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 1,
+    borderRadius: 15,
+    height: 50,
+    borderWidth: 1,
+    borderColor: '#EEEEEE',
   },
   searchInput: {
     flex: 1,
-    fontSize: 16,
-    paddingHorizontal: 10,
-    backgroundColor: 'transparent',
-    color: '#bdbdbdff',
-    height: 44,
-  },
-  chipRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    fontSize: 15,
     paddingHorizontal: 12,
-    marginVertical: 8,
-    marginBottom: 12, // Add this for spacing below chips
+    color: '#333',
+    fontFamily: 'Prompt-Regular', // เพิ่มฟอนต์
   },
   chip: {
-    paddingHorizontal: 18,
-    paddingVertical: 7,
-    borderRadius: 16,
-    backgroundColor: '#eee',
-    marginRight: 14, // was 8, now 14 for more space
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 25,
+    backgroundColor: '#fff',
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
   chipActive: {
     backgroundColor: '#0097a7',
+    borderColor: '#0097a7',
   },
   chipText: {
-    fontSize: 15,
-    color: '#888',
+    fontSize: 14,
+    color: '#666',
     fontWeight: '500',
+    fontFamily: 'Prompt-Regular', // เพิ่มฟอนต์
   },
   chipTextActive: {
     color: '#fff',
+    fontWeight: '700',
+    fontFamily: 'Prompt-Bold', // เพิ่มฟอนต์
+  },
+  listContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  itemWrapper: {
+    marginBottom: 16, // ระยะห่างระหว่างการ์ดข่าว
+  },
+  centerLoader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    marginTop: 80,
+  },
+  emptyText: {
+    marginTop: 15,
+    color: '#999',
+    fontSize: 16,
+    fontWeight: '500',
+    fontFamily: 'Prompt-Regular', // เพิ่มฟอนต์
+  },
+  categoryWrapper: {
+    marginVertical: 15,
+  },
+  chipRow: {
+    paddingHorizontal: 15,
+    paddingBottom: 10, // เผื่อพื้นที่ให้เงาด้านล่าง
+  },
+  categoryTile: {
+    width: 90,
+    height: 90,
+    backgroundColor: '#eef9ff', // สีฟ้าอ่อนมากแบบในรูป
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: 'transparent',
+    // เงาบางๆ สำหรับใบที่ไม่ได้เลือก
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  categoryTileActive: {
+    backgroundColor: '#00adef', // สีฟ้าสดตามรูป
+    borderColor: '#00adef',
+    // เอฟเฟกต์ Glow สีฟ้า
+    shadowColor: "#00adef",
+    shadowOffset: { width: 6, height: 10 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  tileText: {
+    fontSize: 13,
+    color: '#00adef',
+    fontWeight: '600',
+    marginTop: 8,
+    fontFamily: 'Prompt-Regular', // ใช้ฟอนต์ที่โหลด
+  },
+  tileTextActive: {
+    color: '#fff',
+    fontWeight: '700',
+    fontFamily: 'Prompt-Regular'
+  },
+  bgIcon1: {
+    position: 'absolute',
+    top: -40,
+    right: -50,
+    opacity: 0.05, // จางมากๆ เพื่อให้ดูแพง
+    transform: [{ rotate: '15deg' }],
+  },
+  bgIcon2: {
+    position: 'absolute',
+    bottom: '20%',
+    left: -40,
+    opacity: 0.04,
+    transform: [{ rotate: '-20deg' }],
+  },
+  bgIcon3: {
+    position: 'absolute',
+    bottom: -30,
+    right: -20,
+    opacity: 0.05,
+  },
+  circleDecor: {
+    position: 'absolute',
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    borderWidth: 40,
+    borderColor: '#0097a7',
+    top: '30%',
+    right: -150,
+    opacity: 0.02, // ให้เห็นแค่ลางๆ เป็น Layer
   },
 });

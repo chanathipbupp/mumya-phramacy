@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useUser } from '../../components/UserProvider';
 import { addMedicine,getOrderHistoryMe, createOrder, getMedicines, getOrderHistory, getUserList, updateMedicine, getOrderDetail } from '../../composables/fetchAPI';
 import AddEditMedicineForm from '../medicineComponents/AddEditMedicineForm';
@@ -7,6 +7,7 @@ import AdminDispenseList from '../medicineComponents/AdminDispenseList';
 import MedicineItem from '../medicineComponents/MedicineItem';
 import OrderItem from '../medicineComponents/OrderItem';
 import SearchableMedicineList from '../medicineComponents/SearchableMedicineList';
+import { LinearGradient } from 'expo-linear-gradient';
 
 interface Medicine {
   id: string;
@@ -51,6 +52,7 @@ export default function MedicineScreen() {
     if (phoneNumber === '' || phoneNumber === '0') {
       setUserList([]); // ล้าง userList เมื่อ phoneNumber เป็นค่าว่างหรือ 0
     }
+    Alert.alert('กรุณากรอกเบอร์โทรเพื่อค้นหาผู้ใช้ก่อนทำการจ่ายยา');
   }, [phoneNumber]);
 
   const handleSearchUser = async (query: string) => {
@@ -414,7 +416,20 @@ const fetchOrders = async (page = 1) => {
   };
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
+      {/* 1. ใส่ Gradient พื้นหลัง */}
+      <LinearGradient
+        colors={['#eef9ff', '#f0faff', '#c1ced2']}
+        style={StyleSheet.absoluteFill}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      />
       <View style={styles.container}>
+        <LinearGradient
+        colors={['#eef9ff', '#f0faff', '#c1ced2']}
+        style={StyleSheet.absoluteFill}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      />
         {/* Header with AdminMode button */}
         <View style={styles.headerRow}>
           {user?.user?.role === 'admin' && (

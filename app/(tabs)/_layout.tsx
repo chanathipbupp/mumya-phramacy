@@ -12,15 +12,29 @@ import ProfileTabIcon from '../components/ProfileTabIcon';
 import { useRouter } from 'expo-router';
 import { UserProvider, useUser } from '../../components/UserProvider';
 import DailyRewardPopup from '../../components/DailyRewardPopup'; // Adjust path if needed
-import { getDailyLoginStatus, dailyLogin,getUserProfile } from '../../composables/fetchAPI'; // Import endpoints
+import { getDailyLoginStatus, dailyLogin, getUserProfile } from '../../composables/fetchAPI'; // Import endpoints
 import Toast from 'react-native-toast-message'; // Import Toast
 import { Alert } from 'react-native';
 import MedicineTabIcon from '../components/MedicineTabIcon';
+import { useFonts } from 'expo-font';
+import AppLoading from 'expo-app-loading'; // ใช้สำหรับแสดงหน้ารอโหลดฟอนต์
+
+
+
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const router = useRouter();
   const [user, setUser] = useState()
   const [showReward, setShowReward] = useState(false);
+  const [fontsLoaded] = useFonts({
+    'Prompt-Regular': require('../../assets/fonts/Prompt-Regular.ttf'),
+    'Prompt-Bold': require('../../assets/fonts/Prompt-Bold.ttf'),
+  });
+
+  if (!fontsLoaded) {
+    return <AppLoading />; // แสดงหน้ารอโหลดฟอนต์
+  }
+
   useEffect(() => {
     // Fetch user info on mount
     ////console.log("fetching user in add edit article")
@@ -55,7 +69,7 @@ export default function TabLayout() {
         if (statusResponse.status === "available" && user?.role !== "admin") {
           setShowReward(true);
         }
-        
+
       } catch (error) {
         //console.error('Failed to fetch daily login status:', error);
       }
@@ -63,18 +77,18 @@ export default function TabLayout() {
     checkDailyRewardStatus();
   }, [user]); // Re-run when user changes
 
-    const handleClaimReward = async () => {
+  const handleClaimReward = async () => {
     try {
       const res = await dailyLogin(); // Call the daily login endpoint
       ////console.log('Daily Login Response:', res); // Debugging line
       setShowReward(false);
 
       // Show success message
-     if (Platform.OS === 'web') {
-      Toast.show({text1: 'Reward Claimed!'});
-    } else {
-      Alert.alert('Reward Claimed!', 'You have successfully claimed your daily reward.');
-    }
+      if (Platform.OS === 'web') {
+        Toast.show({ text1: 'Reward Claimed!' });
+      } else {
+        Alert.alert('Reward Claimed!', 'You have successfully claimed your daily reward.');
+      }
     } catch (error) {
       //console.error('Failed to claim daily reward:', error);
     }
@@ -82,16 +96,26 @@ export default function TabLayout() {
 
   return (
     <UserProvider>
-       <DailyRewardPopup visible={showReward} onClaim={handleClaimReward} /> 
+      <DailyRewardPopup visible={showReward} onClaim={handleClaimReward} />
       <Tabs
         screenOptions={{
           tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
           headerShown: false,
-          tabBarStyle: Platform.select({
-            ios: { position: 'absolute' },
-            default: {},
-          }),
-        }}>
+          tabBarStyle: {
+            backgroundColor: 'white', // ทำให้ Tab Bar เป็นสีขาวเสมอ
+            height: 70, // เพิ่มความสูงของ Tab Bar
+            paddingBottom: 10, // เพิ่ม Padding ด้านล่าง
+          },
+          tabBarLabelStyle: {
+            fontSize: 14, // เพิ่มขนาดตัวอักษร
+            fontWeight: 'bold', // ทำให้ตัวอักษรหนา
+            fontFamily: 'Prompt-Regular', // ใช้ฟอนต์ที่โหลด
+          },
+          tabBarIconStyle: {
+            marginTop: 5, // เพิ่มระยะห่างระหว่างไอคอนกับตัวอักษร
+          },
+        }}
+      >
         <Tabs.Screen
           name="index"
           options={{
@@ -110,7 +134,7 @@ export default function TabLayout() {
             tabBarLabel: 'บทความ',
           }}
         />
-         <Tabs.Screen
+        <Tabs.Screen
           name="medicine"
           options={{
             tabBarIcon: ({ color, size }) => (

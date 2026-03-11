@@ -57,10 +57,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 18,
+    fontFamily: 'Prompt-Regular'
   },
   greeting: {
     fontWeight: 'bold',
     fontSize: 15,
+    fontFamily: 'Prompt-Regular'
   },
   date: {
     color: '#888',

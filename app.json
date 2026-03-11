@@ -34,11 +34,12 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "expo-font"
     ],
     "env": {
-        "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
-      },
+      "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
+    },
     "experiments": {
       "typedRoutes": true
     },

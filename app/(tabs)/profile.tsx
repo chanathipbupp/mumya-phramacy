@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 import { useUser } from '../../components/UserProvider';
 import * as ImagePicker from 'expo-image-picker';
 import Toast from 'react-native-toast-message'; // Import Toast
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -238,9 +239,19 @@ export default function ProfileScreen() {
       >
         <Text style={styles.deleteAccountText}>Delete Acc</Text>
       </TouchableOpacity>
-
+      <LinearGradient
+        colors={['#eef9ff', '#f0faff', '#c1ced2']}
+        style={StyleSheet.absoluteFill}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      />
       <View style={styles.container}>
-
+        <LinearGradient
+          colors={['#eef9ff', '#f0faff', '#c1ced2']}
+          style={StyleSheet.absoluteFill}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        />
         <View style={styles.avatarBox}>
           {user.avatar ? (
             <Image source={user.avatar} style={styles.avatar} />
