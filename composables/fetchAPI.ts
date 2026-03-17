@@ -1,8 +1,8 @@
 // import { getToken } from './tokenManager';
 
 // const API_URL = 'https://api.dev.mumya.kasidate.me/api';
-// const API_URL = 'https://mumyapharmacy.app/api';
-const API_URL = 'https://mumya.api-playground.memolab.me/api'
+const API_URL = 'https://mumyapharmacy.app/api';
+// const API_URL = 'https://mumya.api-playground.memolab.me/api'
 // const authToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2OGJjNTdlM2QxNWUwZDBkMTg5ZjYxMDciLCJlbWFpbCI6Im11bXlhcGhhcm1hY3kuYXBwQGdtYWlsLmNvbSIsInJvbGVzIjpbInN1cGVyYWRtaW4iLCJ1c2VyIiwiYWRtaW4iXSwiaWF0IjoxNzU3NDE2ODE3LCJleHAiOjE3NjAwMDg4MTd9.YrW73p7ebv1LjsR5ftx4CIJKv-3AhFZKF5cyT5xy8tI'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 

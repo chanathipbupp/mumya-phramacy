@@ -115,6 +115,8 @@ export default function TabLayout() {
           name="index"
           options={{
             tabBarIcon: ({ color, size }) => <NewsTabIcon color={color} size={size} />,
+           tabBarActiveTintColor: '#2f95dc', 
+            tabBarInactiveTintColor: '#8e8e93', // สีตอนไม่ได้กด
             tabBarLabel: 'ข่าวสาร',
           }}
         />
@@ -122,6 +124,8 @@ export default function TabLayout() {
           name="article"
           options={{
             tabBarIcon: ({ color, size }) => <ArticleTabIcon color={color} size={size} />,
+            tabBarActiveTintColor: '#2f95dc', 
+            tabBarInactiveTintColor: '#8e8e93', // สีตอนไม่ได้กด
             tabBarLabel: 'บทความ',
           }}
         />
@@ -159,6 +163,8 @@ export default function TabLayout() {
           name="pointReward"
           options={{
             tabBarIcon: ({ color, size }) => <RewardTabIcon color={color} size={size} />,
+            tabBarActiveTintColor: '#2f95dc', 
+            tabBarInactiveTintColor: '#8e8e93', // สีตอนไม่ได้กด
             tabBarLabel: 'สะสมแต้ม',
           }}
         />
@@ -166,6 +172,8 @@ export default function TabLayout() {
           name="profile"
           options={{
             tabBarIcon: ({ color, size }) => <ProfileTabIcon color={color} size={size} />,
+            tabBarActiveTintColor: '#2f95dc', 
+            tabBarInactiveTintColor: '#8e8e93', // สีตอนไม่ได้กด
             tabBarLabel: 'โปรไฟล์',
           }}
         />
