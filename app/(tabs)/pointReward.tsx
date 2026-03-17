@@ -9,7 +9,7 @@ import GiftButton from '../components/GiftButton';
 import { useFonts } from 'expo-font';
 import AppLoading from 'expo-app-loading'; // ใช้สำหรับแสดงหน้ารอโหลดฟอนต์
 import { LinearGradient } from 'expo-linear-gradient';
-
+import { Linking } from 'react-native'; // เพิ่ม Linking ในกลุ่ม react-native
 type CouponType = {
   id: string;
   title: string;
@@ -83,7 +83,7 @@ const RewardOwnedSkeleton = () => (
 
 // คอมโพเนนต์ Skeleton สำหรับจำลอง RewardCard แบบแนวนอน
 const RewardSkeleton = () => (
-  <View style={[styles.cardAvailable, { opacity: 0.5, borderColor: '#eee' }]}>
+  <View style={[styles.cardAvailable, { opacity: 0.5, borderColor: '#eee', marginHorizontal: 16, }]}>
     {/* ช่องรูปภาพ */}
     <View style={[styles.imagePlaceholderHorizontal, { backgroundColor: '#e0e0e0', borderWidth: 0 }]} />
 
@@ -348,18 +348,35 @@ const RewardCard = ({
                   <Text style={styles.modalTitle}>โค้ดคูปองของคุณ</Text>
                   <Text style={styles.modalSubtitle}>กรุณาแสดงให้พนักงาน</Text>
 
-                  {/* แสดง fullCode ในกล่องข้อความ */}
+                  {/* 1. แสดงกล่องโค้ดปกติเสมอ */}
                   <View style={styles.shortCodeBox}>
                     <Text style={styles.shortCodeText} numberOfLines={1} adjustsFontSizeToFit>
                       {item.fullCode || 'ไม่มีโค้ด'}
                     </Text>
-                    {/* เมื่อกดคัดลอก จะเรียก handleCopyShortCode เพื่อเอาแค่ shortCode */}
-                    {/* <TouchableOpacity style={styles.copyBtn} onPress={handleCopyShortCode}>
-                      <Text style={styles.copyBtnText}>คัดลอก</Text>
-                    </TouchableOpacity> */}
                   </View>
 
+                  {/* 2. เงื่อนไขเพิ่มเติม: ถ้า isActive เป็น false ให้โชว์กล่องแจ้งเตือนสีแดงเพิ่มด้านล่าง */}
+                  {item.isActive === false && (
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      onPress={() => Linking.openURL('https://page.line.me/@450oymuh')}
+                      style={[
+                        styles.expiryWarningBox,
+                        { borderColor: '#D32F2F', backgroundColor: '#FFF5F5', marginTop: 0, marginBottom: 15 }
+                      ]}
+                    >
+                      <Text style={[styles.expiryTitle, { color: '#D32F2F', textAlign: 'center' }]}>
+                        คูปองนี้ถูกลบแล้ว โปรดติดต่อ LINE นี้
+                      </Text>
+                      <Text style={[styles.expiryDetail, { color: '#0a65ae', textDecorationLine: 'underline', marginTop: 5, textAlign: 'center' }]}>
+                        https://page.line.me/@450oymuh
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+
+                  {/* 3. แสดงเวลาถอยหลังปกติ */}
                   <Text style={styles.timerText}>{formatTime(timeLeft)}</Text>
+
                   <TouchableOpacity style={styles.closeBtn} onPress={() => setModalVisible(false)}>
                     <Text style={styles.closeBtnText}>ปิด</Text>
                   </TouchableOpacity>
@@ -373,19 +390,19 @@ const RewardCard = ({
   }
   // Layout แบบแนวนอน (แลกของรางวัล)
   return (
-    <>
+    <View style={{ overflow: 'visible' }}>
+
+      {/* 1. ปุ่มลบบนขวาสำหรับ Admin */}
+      {adminMode && (
+        <TouchableOpacity style={styles.deleteBadge} onPress={handleDeletePress}>
+          <Text style={styles.deleteBadgeText}>✕</Text>
+        </TouchableOpacity>
+      )}
       <TouchableOpacity
         style={[styles.cardAvailable, isLimitReached && !adminMode ? { opacity: 0.7 } : null]}
         onPress={handleRedeemPress}
         activeOpacity={0.9}
       >
-        {/* 1. ปุ่มลบบนขวาสำหรับ Admin */}
-        {adminMode && (
-          <TouchableOpacity style={styles.deleteBadge} onPress={handleDeletePress}>
-            <Text style={styles.deleteBadgeText}>✕</Text>
-          </TouchableOpacity>
-        )}
-
         {/* 1.1 รูปภาพ (จัตุรัสฝั่งซ้าย) */}
         <View style={styles.imageWrapperHorizontal}>
           <Image
@@ -399,60 +416,51 @@ const RewardCard = ({
           <View style={styles.dashDivider} />
         </View>
 
-        {/* --- 3. ส่วนเนื้อหาฝั่งขวา (ขยายเต็มพื้นที่) --- */}
-        <View style={{ flex: 1, padding: 12, justifyContent: 'space-between' }}>
+        {/* 3. เนื้อหาตรงกลาง */}
+        <View style={{ flex: 1, padding: 12, position: 'relative' }}>
+          <View style={{ paddingRight: 70 }}> {/* เว้นช่องว่างด้านขวาไว้หน่อยไม่ให้ตัวหนังสือชิดขอบปุ่มจนเกินไป */}
+            <Text style={styles.cardTitle} numberOfLines={1} ellipsizeMode="tail">
+              {item.title}
+            </Text>
+            <Text style={styles.cardDetail} numberOfLines={1}>
+              {item.description || 'ไม่มีรายละเอียด'}
+            </Text>
+            <Text style={[styles.cardPointsHighlight, { marginTop: 4 }]} numberOfLines={1}>{item.pointCost} P</Text>
 
-          {/* แถวบน: ข้อมูลชื่อ และ ปุ่มแลก (วางคู่กัน) */}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <View style={{ flex: 1, marginRight: 8 }}>
-              <Text style={styles.cardTitle} numberOfLines={1} ellipsizeMode="tail">
-                {item.title}
+            <View style={{ marginTop: 8 }}>
+              <Text style={styles.limitText} numberOfLines={1}>
+                {adminMode
+                  ? `ขีดจำกัดต่อคน: ${item.redemptionLimitPerUser || 'ไม่จำกัด'}`
+                  : `สิทธิ์แลก: ${currentRedeemedCount}/${redemptionLimit || 'ไม่มีกำหนด'}`}
               </Text>
-              <Text style={styles.cardDetail} numberOfLines={1}>
-                {item.description || 'ไม่มีรายละเอียด'}
-              </Text>
-              <Text style={[styles.cardPointsHighlight, { marginTop: 4 }]}>{item.pointCost} P</Text>
-            </View>
-
-            {/* ปุ่มแลก/Gift วางตรงนี้ */}
-            <View>
-              {adminMode && item.type === 'special' ? (
-                <View style={{ alignItems: 'center' }}>
-                  <GiftButton onPress={() => setGiftModalVisible(true)} />
-                  <Text style={{ marginTop: 4, fontSize: 10, fontWeight: 'bold', color: '#E91E63', fontFamily: "Prompt-Regular" }}>ให้ของขวัญ</Text>
-                </View>
-              ) : !adminMode && (
-                <TouchableOpacity
-                  style={styles.horizontalGradientBtn}
-                  onPress={handleRedeemPress}
-                  disabled={isLimitReached || isRedeeming}
-                >
-                  {isLimitReached ? (
-                    <View style={styles.horizontalDisabledContainer}>
-                      <Text style={[styles.horizontalActionBtnText, { color: '#999', fontSize: 10 }]}>เต็มแล้ว</Text>
-                    </View>
-                  ) : (
-                    <LinearGradient
-                      colors={['#1e88e5', '#0a65ae', '#084b8a']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={styles.horizontalGradientPadding}
-                    >
-                      <Text style={styles.horizontalActionBtnText}>แลก</Text>
-                    </LinearGradient>
-                  )}
-                </TouchableOpacity>
-              )}
             </View>
           </View>
 
-          {/* แถวล่างสุด: สิทธิ์คงเหลือ (ยาวได้เต็มที่จนถึงขอบขวา) */}
-          <View style={{ borderTopWidth: 0, paddingTop: 4 }}>
-            <Text style={[styles.limitText, { width: '100%' }]} numberOfLines={1}>
-              {adminMode
-                ? `ขีดจำกัดต่อคน: ${item.redemptionLimitPerUser || 'ไม่จำกัด'} ครั้ง`
-                : `สิทธิ์คงเหลือ: ${currentRedeemedCount}/${redemptionLimit || 'ไม่มีกำหนด'}`}
-            </Text>
+          {/* 4. ส่วนปุ่มปฏิบัติการ (วางทับด้านขวาด้วย Absolute) */}
+          <View style={styles.absoluteActionWrapper}>
+            {adminMode && item.type === 'special' ? (
+              <View style={{ alignItems: 'center' }}>
+                <GiftButton onPress={() => setGiftModalVisible(true)} />
+                <Text style={styles.giftLabelAdmin}>ให้ของขวัญ</Text>
+              </View>
+            ) : !adminMode && (
+              <TouchableOpacity
+                style={styles.horizontalGradientBtn}
+                onPress={handleRedeemPress}
+                disabled={isLimitReached || isRedeeming}
+              >
+                <LinearGradient
+                  colors={isLimitReached ? ['#ccc', '#999'] : ['#1e88e5', '#0a65ae', '#084b8a']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.horizontalGradientPadding}
+                >
+                  <Text style={styles.horizontalActionBtnText}>
+                    {isLimitReached ? 'เต็มแล้ว' : 'แลก'}
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </TouchableOpacity>
@@ -466,7 +474,7 @@ const RewardCard = ({
         onRequestClose={() => setGiftModalVisible(false)}
       >
         <TouchableWithoutFeedback onPress={() => !isSending && setGiftModalVisible(false)}>
-          <View style={styles.modalOverlay}>
+          <View style={[styles.modalOverlay, { paddingHorizontal: 60 }]}>
             <TouchableWithoutFeedback>
               <View style={styles.giftModalContainer}>
                 <Text style={styles.giftModalTitle}>ส่งของขวัญ</Text>
@@ -594,7 +602,7 @@ const RewardCard = ({
           </View>
         </TouchableWithoutFeedback>
       </Modal>
-    </>
+    </View>
   );
 };
 
@@ -2387,18 +2395,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 16,
     marginVertical: 10,
-    marginHorizontal: 16,
-    height: 120, // กำหนดความสูงคงที่เพื่อให้ดูเหมือนตั๋ว
-    // Shadow สำหรับ iOS
+
+    minHeight: 125, // เปลี่ยนจาก height เป็น minHeight
+    elevation: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.1, // ลดความเข้มลงนิดนึงให้ดูคลีน
     shadowRadius: 10,
-    // Shadow สำหรับ Android
-    elevation: 8,
-    overflow: 'visible', // สำคัญ: เพื่อให้รอยเจาะล้นออกมาได้นิดหน่อยถ้าจำเป็น
+    overflow: 'hidden', // กันรูปภาพล้นขอบโค้ง
   },
-
   // 1.1 ส่วนรูปภาพ (ซ้าย)
   imageWrapperHorizontal: {
     width: 110,
@@ -2489,17 +2494,40 @@ const styles = StyleSheet.create({
   },
 
   // 1.3 ส่วนปุ่มแลก (ขวา)
+  absoluteActionWrapper: {
+    position: 'absolute',
+    right: 12, // ระยะห่างจากขอบขวาของการ์ด
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center', // จัดให้อยู่กึ่งกลางแนวตั้งทับเนื้อหา
+    alignItems: 'center',
+    zIndex: 10, // ให้มั่นใจว่าปุ่มอยู่บนสุด
+  },
 
+  // ปรับความกว้างปุ่มให้เป็นแคปซูลสั้นๆ ตามรูป
   horizontalGradientBtn: {
-    width: '100%',
-    height: 40,
-    borderRadius: 20,
+    width: 65, // กำหนดความกว้างที่แน่นอน
+    height: 35,
+    borderRadius: 18,
     overflow: 'hidden',
+    elevation: 4, // เพิ่มเงาให้ปุ่มดูลอยเด่นขึ้นมาเหนือเนื้อหา
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
   },
   horizontalGradientPadding: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+
+  giftLabelAdmin: {
+    marginTop: 4,
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#E91E63',
+    fontFamily: "Prompt-Regular"
   },
   horizontalActionBtnText: {
     color: '#fff',
@@ -2570,7 +2598,7 @@ const styles = StyleSheet.create({
   },
   exchangeBtnText: { fontWeight: 'bold', fontFamily: 'Prompt-Bold' },
   durationText: { fontSize: 10, color: '#666', marginTop: 5, fontFamily: 'Prompt-Regular' },
-  verticalList: { padding: 4 },
+  verticalList: {},
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -2597,7 +2625,7 @@ const styles = StyleSheet.create({
     width: '100%',
     marginBottom: 20,
   },
-  shortCodeText: { fontSize: 18, flex: 1, fontFamily: 'Prompt-Bold' },
+  shortCodeText: { fontSize: 18, flex: 1, fontFamily: 'Prompt-Bold', textAlign: 'center' },
   copyBtn: {
     backgroundColor: '#007BFF',
     padding: 10,
@@ -3055,19 +3083,19 @@ const styles = StyleSheet.create({
   },
   deleteBadge: {
     position: 'absolute',
-    top: -8,
-    right: -8,
-    backgroundColor: '#D32F2F', // สีแดง
+    top: -8,      // ดันขึ้นไปนอกกรอบบน
+    right: -8,    // ดันออกไปนอกกรอบขวา
+    backgroundColor: '#D32F2F',
     width: 26,
     height: 26,
     borderRadius: 13,
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 5,               // เงาสำหรับ Android
-    shadowColor: '#000',        // เงาสำหรับ iOS
+    elevation: 10,       // ให้เงาสูงกว่าปกติเพื่อไม่ให้กลืนไปกับพื้นหลัง
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
-    zIndex: 999,                // ให้อยู่เลเยอร์บนสุด
+    zIndex: 9999,        // มั่นใจว่าอยู่บนสุดแน่นอน
   },
   deleteBadgeText: {
     color: '#fff',
@@ -3076,10 +3104,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Prompt-Bold',
   },
   giftModalContainer: {
-    width: '90%',
+    width: '100%',
     backgroundColor: 'white',
     borderRadius: 15,
-    padding: 25,
+    padding: 24,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -3141,18 +3169,19 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   giftSendBtn: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#000',
+    backgroundColor: '#E91E63',
+
     paddingVertical: 10,
     paddingHorizontal: 35,
     borderRadius: 15,
+
   },
   giftSendBtnText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#000',
+    color: '#fff',
     fontFamily: 'Prompt-Bold',
+
   },
   receivedCodeContainer: {
     backgroundColor: '#fff',
@@ -3409,26 +3438,12 @@ const styles = StyleSheet.create({
     fontFamily: 'Prompt-Regular',
     marginTop: 5,
   },
-  horizontalGradientBtn: {
-    borderRadius: 20, // ทรงแคปซูล
-    overflow: 'hidden',
-    minWidth: 80,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1.41,
-  },
-  horizontalGradientPadding: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+
+
   horizontalDisabledContainer: {
     backgroundColor: '#e0e0e0', // สีเทาสำหรับปุ่มปิดใช้งาน
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -3463,5 +3478,62 @@ const styles = StyleSheet.create({
     color: '#D32F2F', // สีแดงเข้ม
     fontFamily: 'Prompt-Bold',
     fontSize: 14,
+  },
+  sideActionContainer: {
+    width: 55, // เพิ่มความกว้างขึ้นนิดหน่อยเพื่อให้ตัวหนังสือเอียงได้สวย    height: '100%',
+    borderTopRightRadius: 16,
+    borderBottomRightRadius: 16,
+    overflow: 'hidden',
+  },
+  sideActionStrip: {
+    width: 55, // ล็อคความกว้างไว้เลย ไม่ให้โดนบีบ
+    height: '100%',
+    backgroundColor: '#fff', // เพื่อให้เห็นขอบมนชัดเจน
+  },
+  verticalTextContainer: {
+    width: 100, // กว้างกว่าแถบเพื่อให้มีพื้นที่หมุน
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sideGradient: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    // ทำขอบซ้ายให้โค้งเว้าเข้าตามรูปตั๋วที่คุณชอบ
+    // borderTopLeftRadius: 25,
+    // borderBottomLeftRadius: 25,
+    // ขอบขวาให้มนตามกรอบนอก
+    borderTopRightRadius: 16,
+    borderBottomRightRadius: 16,
+  },
+  sideGiftBtn: {
+    flex: 1,
+    backgroundColor: '#E91E63',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  verticalText: {
+    color: '#fff',
+    fontSize: 16,
+    fontFamily: 'Prompt-Bold',
+    // เทคนิคทำตัวอักษรแนวตั้ง (สำหรับภาษาไทย/อังกฤษสั้นๆ)
+    textAlign: 'center',
+    width: 20,
+    lineHeight: 22,
+  },
+  verticalTextWrapper: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 70, // ความกว้างหลอกเพื่อให้ Text หมุนได้ไม่หลุด
+  },
+  rotatedText: {
+    color: '#fff',
+    fontSize: 18,
+    fontFamily: 'Prompt-Bold',
+    // หมุนข้อความ 90 องศา ตัวอักษรจะไม่ซ้อนกัน
+    transform: [{ rotate: '-90deg' }],
+    textAlign: 'center',
+    width: 120,
   },
 });
