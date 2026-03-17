@@ -118,7 +118,13 @@ const RewardCard = ({
   const [isSending, setIsSending] = useState(false);
   const [suggestedPhones, setSuggestedPhones] = useState<string[]>([]); // รายการเบอร์โทรศัพท์ที่แนะนำ
   const [suggestedUsers, setSuggestedUsers] = useState<any[]>([]);
-
+  const today = new Date();
+  const nextMonth = new Date(today.setMonth(today.getMonth() + 1));
+  const formattedExpiry = nextMonth.toLocaleDateString('th-TH', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 
   const handlePhoneInputChange = (text: string) => {
     setRecipientPhone(text);
@@ -255,7 +261,7 @@ const RewardCard = ({
   //     Alert.alert('คัดลอกสำเร็จ', 'คัดลอก ShortCode เรียบร้อยแล้ว');
   //   }
   // };
-const isInactive = item.status === 'used' || item.status === 'expired';
+  const isInactive = item.status === 'used' || item.status === 'expired';
 
   if (mode === 'owned') {
     return (
@@ -307,7 +313,7 @@ const isInactive = item.status === 'used' || item.status === 'expired';
               >
                 <LinearGradient
                   colors={
-                    item.status === 'used'||item.status === 'expired'
+                    item.status === 'used' || item.status === 'expired'
                       ? ['#d3d3d3', '#a9a9a9', '#808080'] // สีเทาเมื่อใช้งานแล้ว
                       : ['#1e88e5', '#0a65ae', '#084b8a'] // สีปกติ
                   }
@@ -545,7 +551,13 @@ const isInactive = item.status === 'used' || item.status === 'expired';
                       <Text style={[styles.confirmPointValue, { fontSize: 20 }]}>{item.pointCost || 0} P</Text>
                     </View>
                   </View>
-
+                  {/* ส่วนที่เพิ่มใหม่ตรงนี้ */}
+                  <View style={styles.expiryWarningBox}>
+                    <Text style={styles.expiryTitle}>ระยะเวลาการใช้งาน: 1 เดือน</Text>
+                    <Text style={styles.expiryDetail}>
+                      กรุณามาใช้ก่อนวันที่ <Text style={styles.highlightRed}>{formattedExpiry}</Text>
+                    </Text>
+                  </View>
                   <View style={styles.confirmBtnRow}>
                     <TouchableOpacity
                       style={[styles.modalCancelBtn, isRedeeming && { opacity: 0.5 }]}
@@ -3420,11 +3432,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  horizontalActionBtnText: {
-    color: '#fff',
+  // horizontalActionBtnText: {
+  //   color: '#fff',
+  //   fontSize: 14,
+  //   fontFamily: 'Prompt-Bold',
+  //   // ถ้าสถานะ disabled อาจจะเปลี่ยนสีตัวอักษรเป็นสีเทาเข้ม
+  // },
+  expiryWarningBox: {
+    backgroundColor: '#FFF5F5', // พื้นหลังชมพูอ่อนมาก
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#FFEBEE',
+    alignItems: 'center',
+    marginVertical: 15,
+    width: '100%',
+  },
+  expiryTitle: {
     fontSize: 14,
     fontFamily: 'Prompt-Bold',
-    // ถ้าสถานะ disabled อาจจะเปลี่ยนสีตัวอักษรเป็นสีเทาเข้ม
+    color: '#333',
+    marginBottom: 2,
   },
-
+  expiryDetail: {
+    fontSize: 13,
+    fontFamily: 'Prompt-Regular',
+    color: '#666',
+  },
+  highlightRed: {
+    color: '#D32F2F', // สีแดงเข้ม
+    fontFamily: 'Prompt-Bold',
+    fontSize: 14,
+  },
 });
