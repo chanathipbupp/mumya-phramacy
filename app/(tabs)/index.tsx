@@ -183,53 +183,53 @@ export default function HomeScreen() {
             contentContainerStyle={styles.chipRow}
           >
             {CATEGORIES.map((cat) => {
-  const isActive = selectedCategory === cat.value;
-  
-  // สร้าง Content ด้านในเพื่อนำไปใช้ซ้ำ
-  const tileContent = (
-    <>
-      {cat.icon && React.cloneElement(cat.icon as React.ReactElement, {
-        color: isActive ? '#ffffff' : '#0097a7'
-      })}
-      <Text
-        style={[
-          styles.tileText,
-          isActive && styles.tileTextActive,
-        ]}
-        numberOfLines={1}
-      >
-        {cat.name}
-      </Text>
-    </>
-  );
+              const isActive = selectedCategory === cat.value;
 
-  return (
-    <TouchableOpacity
-      key={cat.value}
-      style={[
-        styles.categoryTile,
-        isActive && { elevation: 8, shadowColor: '#00adef' } // เพิ่มเงาให้ตัวปุ่มหลัก
-      ]}
-      onPress={() => {
-        flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
-        setSelectedCategory(cat.value);
-      }}
-    >
-      {isActive ? (
-        <LinearGradient
-          colors={['#9de5ff', '#00adef'] } // ไล่เฉดสีฟ้าสดไปฟ้าเข้ม
-          style={styles.gradientTile}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          {tileContent}
-        </LinearGradient>
-      ) : (
-        tileContent
-      )}
-    </TouchableOpacity>
-  );
-})}
+              // สร้าง Content ด้านในเพื่อนำไปใช้ซ้ำ
+              const tileContent = (
+                <>
+                  {cat.icon && React.cloneElement(cat.icon as React.ReactElement, {
+                    color: isActive ? '#ffffff' : '#00adef'
+                  })}
+                  <Text
+                    style={[
+                      styles.tileText,
+                      isActive && styles.tileTextActive,
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {cat.name}
+                  </Text>
+                </>
+              );
+
+              return (
+                <TouchableOpacity
+                  key={cat.value}
+                  style={[
+                    styles.categoryTile,
+                    isActive && { elevation: 8, shadowColor: '#00adef' } // เพิ่มเงาให้ตัวปุ่มหลัก
+                  ]}
+                  onPress={() => {
+                    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+                    setSelectedCategory(cat.value);
+                  }}
+                >
+                  {isActive ? (
+                    <LinearGradient
+                      colors={['#9de5ff', '#00adef']} // ไล่เฉดสีฟ้าสดไปฟ้าเข้ม
+                      style={styles.gradientTile}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                    >
+                      {tileContent}
+                    </LinearGradient>
+                  ) : (
+                    tileContent
+                  )}
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
         </View>
 
@@ -403,8 +403,8 @@ const styles = StyleSheet.create({
     paddingBottom: 10, // เผื่อพื้นที่ให้เงาด้านล่าง
   },
   categoryTile: {
-    width: 100,
-    height: 100,
+    width: 80,
+    height: 80,
     backgroundColor: '#ffffff', // สีฟ้าอ่อนมากแบบในรูป
     borderRadius: 18,
     justifyContent: 'center',
@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
   },
   tileText: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#00adef',
     fontWeight: '600',
     marginTop: 8,

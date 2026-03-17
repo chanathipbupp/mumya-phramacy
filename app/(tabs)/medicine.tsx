@@ -508,7 +508,7 @@ export default function MedicineScreen() {
                       <OrderItem
                         date={order.createdAt}
                         details={`สถานะ: ${order.orderStatus}`}
-                        pharmacist={order.pharmacist.name} // ใช้เฉพาะ name ของ pharmacist
+                        pharmacist={order.pharmacist?.name} // ใช้เฉพาะ name ของ pharmacist
                         medicineNames={order.medicineItems?.map((medicine) => medicine.medicineName) || []} // ส่ง medicineName เป็น array
                       />
                     </TouchableOpacity>
