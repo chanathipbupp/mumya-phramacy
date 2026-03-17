@@ -1860,7 +1860,7 @@ export default function TabTwoScreen() {
                         ))}
 
                         {availableRewards.length === 0 && !loadingAvailableRewards && (
-                          <Text style={{ textAlign: 'center', color: '#999', marginTop: 20 }}>
+                          <Text style={{ textAlign: 'center', color: '#999', marginTop: 20, fontFamily: 'Prompt-Regular' }}>
                             ไม่พบรายการคูปอง
                           </Text>
                         )}
