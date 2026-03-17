@@ -125,6 +125,28 @@ export default function LoginScreen() {
       });
     }
   };
+  
+// เพิ่ม useEffect ใน LoginScreen
+useEffect(() => {
+  const handleMessage = async (event: MessageEvent) => {
+    // ตรวจสอบว่าเป็น Message จากเว็บเราเอง
+    if (event.origin !== window.location.origin) return;
+
+    if (event.data.type === "AUTH_SUCCESS") {
+      // เมื่อ Popup ส่งสัญญาณมาว่าสำเร็จ
+      Toast.show({ text1: "เข้าสู่ระบบสำเร็จ" });
+      router.replace("/"); // หน้าเว็บหลักจะเปลี่ยนหน้าไปหน้า Home
+    }
+    
+    if (event.data.type === "AUTH_ERROR") {
+      Toast.show({ text1: "Login ผิดพลาด", text2: event.data.message });
+      setLoading(false);
+    }
+  };
+
+  window.addEventListener("message", handleMessage);
+  return () => window.removeEventListener("message", handleMessage);
+}, []);
 
   const tryLineLogin = async (accessToken: string, phone?: string, name?: string) => {
     try {

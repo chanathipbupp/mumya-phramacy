@@ -58,14 +58,24 @@ export default function AuthCallback() {
 
         if (res.accessToken) {
           await AsyncStorage.setItem("accessToken", res.accessToken);
-          Toast.show({ text1: "Login ด้วย Google สำเร็จ" });
-          router.replace("/");
+
+          // ✅ เพิ่มตรงนี้: ส่งสัญญาณบอกหน้าหลักและปิด Popup
+          if (window.opener) {
+            window.opener.postMessage({ type: "AUTH_SUCCESS", token: res.accessToken }, window.location.origin);
+            window.close(); // ปิดหน้าต่าง Popup ทันที
+          } else {
+            router.replace("/"); // กรณีไม่ได้เปิดแบบ Popup
+          }
         } else {
+          if (window.opener) {
+            window.opener.postMessage({ type: "AUTH_ERROR", message: res.message }, window.location.origin);
+            window.close();
+          }
           Toast.show({
             text1: "เข้าสู่ระบบด้วย Google ไม่สำเร็จ",
             text2: res.message || res.reason || "",
           });
-          router.replace("/login");
+          // router.replace("/login");
         }
       } catch (e: any) {
         Toast.show({ text1: e.message || "Google Login ไม่สำเร็จ" });
@@ -105,7 +115,7 @@ export default function AuthCallback() {
           Toast.show({
             text1: "เข้าสู่ระบบด้วย LINE ไม่สำเร็จ",
             text2: res.message || res.reason || "",
-          
+
           });
           router.replace("/login");
           WebBrowser.dismissBrowser(); // ปิด popup
