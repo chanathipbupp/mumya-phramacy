@@ -2,7 +2,7 @@ import React from 'react';
 import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const GiftButton = ({ onPress, disabled }: { onPress: () => void, disabled?: boolean }) => {
+const GiftButton = ({ onPress, disabled }: { onPress?: () => void, disabled?: boolean }) => {
   return (
     <TouchableOpacity 
       onPress={onPress} 

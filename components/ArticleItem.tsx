@@ -1,6 +1,9 @@
 import React from 'react';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useFonts } from 'expo-font';
+import AppLoading from 'expo-app-loading'; // ใช้สำหรับแสดงหน้ารอโหลดฟอนต์
+import { LinearGradient } from 'expo-linear-gradient';
 
 type ArticleItemProps = {
   slug: string;
@@ -16,6 +19,15 @@ type ArticleItemProps = {
 
 export default function ArticleItem({ slug, ...props }: ArticleItemProps) {
   const router = useRouter();
+  const [fontsLoaded] = useFonts({
+    'Prompt-Regular': require('../assets/fonts/Prompt-Regular.ttf'),
+    'Prompt-Bold': require('../assets/fonts/Prompt-Bold.ttf'),
+  });
+
+  if (!fontsLoaded) {
+    return <AppLoading />; // แสดงหน้ารอโหลดฟอนต์
+  }
+
   //console.log(props?.role, "role in article item")
   const handleDelete = async (e?: any) => {
     if (e?.stopPropagation) e.stopPropagation();
@@ -61,32 +73,33 @@ export default function ArticleItem({ slug, ...props }: ArticleItemProps) {
         }}
       >
         {/* Big Red X */}
-       {props?.role?.toLowerCase() === 'admin' && (
-        <button
-          onClick={handleDelete}
-          style={{
-            position: 'absolute',
-            top: -4,
-            right: 2,
-            background: '#f44',
-            border: 'none',
-            color: '#fff',
-            borderRadius: '50%',
-            width: 24,
-            height: 24,
-            fontWeight: 'bold',
-            fontSize: 16,
-            cursor: 'pointer',
-            zIndex: 2,
-            boxShadow: '0 2px 8px #0002',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            lineHeight: 1,
-          }}
-          title="ลบบทความ"
-        >✕</button>
-       )}
+        {props?.role?.toLowerCase() === 'admin' && (
+          <button
+            onClick={handleDelete}
+            style={{
+              position: 'absolute',
+              top: -4,
+              right: 2,
+              background: '#f44',
+              border: 'none',
+              color: '#fff',
+              borderRadius: '50%',
+              width: 24,
+              height: 24,
+              fontWeight: 'bold',
+              fontSize: 16,
+              cursor: 'pointer',
+              zIndex: 2,
+              boxShadow: '0 2px 8px #0002',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              lineHeight: 1,
+              fontFamily: 'Prompt-Bold',
+            }}
+            title="ลบบทความ"
+          >✕</button>
+        )}
 
         {/* Picture */}
         <div
@@ -138,7 +151,7 @@ export default function ArticleItem({ slug, ...props }: ArticleItemProps) {
             position: 'relative',
           }}
         >
-          <div style={{ fontWeight: 'bold', fontSize: 20, marginBottom: 8, wordBreak: 'break-word' }}>
+          <div style={{ fontWeight: 'bold', fontSize: 20, marginBottom: 8, wordBreak: 'break-word', fontFamily: 'Prompt-Bold' }}>
             {props.title}
           </div>
           <div
@@ -153,6 +166,7 @@ export default function ArticleItem({ slug, ...props }: ArticleItemProps) {
               overflow: 'hidden',             // <-- hide overflow
               textOverflow: 'ellipsis',       // <-- show ...
               wordBreak: 'break-all',
+              fontFamily: 'Prompt-Regular',
             }}
           >
             {props.content}
@@ -160,20 +174,33 @@ export default function ArticleItem({ slug, ...props }: ArticleItemProps) {
           {props.tags && props.tags.length > 0 && (
             <div style={{ display: 'flex', gap: 8, margin: '2px 0 0 0', flexWrap: 'wrap' }}>
               {props.tags.map(tag => (
-                <span
-                  key={tag}
-                  style={{
-                    background: '#5ccbffff',
-                    color: '#ffffffff',
-                    borderRadius: 10,
-                    padding: '4px 16px',
-                    fontSize: 14,
-                    fontWeight: 400,
-                    display: 'inline-block',
-                  }}
-                >
-                  {tag}
-                </span>
+                <div key={tag} style={{ borderRadius: 12, overflow: 'hidden' }}>
+                  <LinearGradient
+                    // ไล่เฉดจากฟ้าสว่าง ไปหาฟ้าหลักที่คุณชอบ (#5ccbffff)
+                    colors={['#9de5ff', '#5ccbffff']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={{
+                      paddingHorizontal: 16, // ระยะห่างซ้าย-ขวา
+                      paddingVertical: 4,    // ระยะห่างบน-ล่าง
+                      borderRadius: 10,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: '#ffffff',
+                        fontSize: 14,
+                        fontWeight: 500,
+                        fontFamily: 'Prompt-Regular',
+                        textShadow: '0px 1px 2px rgba(0,0,0,0.1)', // เพิ่มเงาให้ตัวหนังสืออ่านง่ายขึ้น
+                      }}
+                    >
+                      {tag}
+                    </span>
+                  </LinearGradient>
+                </div>
               ))}
             </div>
           )}
@@ -188,8 +215,8 @@ export default function ArticleItem({ slug, ...props }: ArticleItemProps) {
             }}
           >
 
-            <div style={{ color: '#000000ff', fontSize: 13, fontWeight: 400, wordBreak: 'break-all', marginBottom:8, marginLeft:8, display: 'flex', alignItems: 'center', gap: 4 }}>
-              <Ionicons name="calendar-outline" size={18} color="#888" style={{ marginRight: 6}} />
+            <div style={{ color: '#000000ff', fontSize: 13, fontWeight: 400, wordBreak: 'break-all', marginBottom: 8, marginLeft: 8, display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'Prompt-Regular' }}>
+              <Ionicons name="calendar-outline" size={18} color="#888" style={{ marginRight: 6 }} />
               {props.date
                 ? new Date(props.date).toLocaleString('th-TH', {
                   year: 'numeric',
@@ -203,30 +230,32 @@ export default function ArticleItem({ slug, ...props }: ArticleItemProps) {
             </div>
 
             {props?.role?.toLowerCase() === 'admin' && (
-            <button
-              onClick={e => {
-                e.stopPropagation(); // <-- Add this line
-                handleEdit();
-              }}
-              style={{
-                border: '2px solid #0097a7',
-                color: '#ffffffff',
-                backgroundColor: '#0097a7',
-                margin: 4,
-                borderRadius: 12,
-                padding: '8px 18px',
-                fontSize: 15,
-                fontWeight: 400,
-                cursor: 'pointer',
-                outline: 'none',
-                transition: 'background 0.2s, color 0.2s',
-              }}
-              title="แก้ไขบทความ"
-            >
-              แก้ไข
-            </button>
+              <button
+                onClick={e => {
+                  e.stopPropagation(); // <-- Add this line
+                  handleEdit();
+                }}
+                style={{
+                  border: '2px solid #0097a7',
+                  color: '#ffffffff',
+                  backgroundColor: '#0097a7',
+                  margin: 4,
+                  borderRadius: 12,
+                  padding: '8px 18px',
+                  fontSize: 15,
+                  fontFamily: 'Prompt-Bold',
+
+                  fontWeight: 400,
+                  cursor: 'pointer',
+                  outline: 'none',
+                  transition: 'background 0.2s, color 0.2s',
+                }}
+                title="แก้ไขบทความ"
+              >
+                แก้ไข
+              </button>
             )}
-            
+
           </div>
         </div>
       </div>

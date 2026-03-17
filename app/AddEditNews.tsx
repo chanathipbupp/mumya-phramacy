@@ -5,7 +5,8 @@ import { createNews, updateNews, getNewsBySlug, uploadFile, getUserProfile } fro
 import { CheckBox } from 'react-native'; // Consider using a community checkbox for better support
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
-
+import { useFonts } from 'expo-font';
+import AppLoading from 'expo-app-loading';
 type NewsForm = {
   _id?: string;
   title: string;
@@ -59,7 +60,11 @@ export default function AddEditNews() {
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(false);
-
+ const [fontsLoaded] = useFonts({
+    'Prompt-Regular': require('../assets/fonts/Prompt-Regular.ttf'),
+    'Prompt-Bold': require('../assets/fonts/Prompt-Bold.ttf'),
+  });
+  if (!fontsLoaded) return <AppLoading />;
   useEffect(() => {
     // Fetch user info on mount
     const fetchUser = async () => {
@@ -248,13 +253,13 @@ export default function AddEditNews() {
         <View style={styles.card}>
           <Text style={styles.header}>{mode === 'add' ? 'เพิ่มข่าวสาร' : 'แก้ไขข่าวสาร'}</Text>
           {loading ? (
-            <Text style={{ textAlign: 'center', marginVertical: 24 }}>กำลังโหลดข้อมูล...</Text>
+            <Text style={{ textAlign: 'center', marginVertical: 24, fontFamily: 'Prompt-Regular' }}>กำลังโหลดข้อมูล...</Text>
           ) : (
             <>
               {/* Top row: หัวข้อข่าว, ประเภท, รายละเอียด */}
               <View style={styles.topRow}>
                 <View style={styles.topColSmall}>
-                  <Text style={styles.label}>
+                  <Text style={[styles.label, { fontFamily: 'Prompt-Regular' }]}>
                     หัวข้อข่าว <Text style={{ color: 'red' }}>*</Text>
                   </Text>
                   <TextInput
@@ -266,7 +271,7 @@ export default function AddEditNews() {
                   />
                 </View>
                 <View style={styles.topColSmall}>
-                  <Text style={styles.label}>
+                  <Text style={[styles.label, { fontFamily: 'Prompt-Regular' }]}>
                     ประเภท <Text style={{ color: 'red' }}>*</Text>
                   </Text>
                   <View style={styles.pickerWrapper}>
@@ -284,7 +289,7 @@ export default function AddEditNews() {
                   </View>
                 </View>
                 <View style={styles.topColLarge}>
-                  <Text style={styles.label}>รายละเอียด</Text>
+                  <Text style={[styles.label, { fontFamily: 'Prompt-Regular' }]}>รายละเอียด</Text>
                   <TextInput
                     style={[styles.input, styles.textArea, { height: 48 }]}
                     value={form.message}
@@ -299,7 +304,7 @@ export default function AddEditNews() {
 
               {/* Content JSON */}
               <View style={styles.contentRow}>
-                <Text style={styles.label}>
+                <Text style={[styles.label, { fontFamily: 'Prompt-Regular' }]}>
                   Content <Text style={{ color: 'red' }}>*</Text>
                 </Text>
                 <View style={{ height: 200, backgroundColor: '#fff', borderRadius: 24, marginBottom: 8, borderWidth: 1, borderColor: '#ddd' }}>
@@ -319,7 +324,7 @@ export default function AddEditNews() {
               <View style={styles.middleRow}>
                 {/* Left column */}
                 <View style={styles.middleColLeft}>
-                  <Text style={styles.label}>ลิงก์เพิ่มเติม</Text>
+                  <Text style={[styles.label, { fontFamily: 'Prompt-Regular' }]}>ลิงก์เพิ่มเติม</Text>
                   <TextInput
                     style={styles.input}
                     value={form.linkUrl}
@@ -327,7 +332,7 @@ export default function AddEditNews() {
                     placeholder="กรอก URL เพิ่มเติม"
                     placeholderTextColor="#aaa"
                   />
-                  <Text style={styles.label}>ลิงก์รูปภาพ</Text>
+                  <Text style={[styles.label, { fontFamily: 'Prompt-Regular' }]}>ลิงก์รูปภาพ</Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     {Platform.OS === 'web' ? (
                       <div
@@ -388,7 +393,7 @@ export default function AddEditNews() {
                   {/* Dates row */}
                   <View style={styles.dateRow}>
                     <View style={styles.dateColNarrow}>
-                      <Text style={styles.label}>
+                      <Text style={[styles.label, { fontFamily: 'Prompt-Regular' }]}>
                         วันที่เริ่มต้น <Text style={{ color: 'red' }}>*</Text>
                       </Text>
                       {Platform.OS === 'web' ? (
@@ -424,7 +429,7 @@ export default function AddEditNews() {
                     </View>
                     <Text style={styles.dateDash}>-</Text>
                     <View style={styles.dateColNarrow}>
-                      <Text style={styles.label}>วันที่สิ้นสุด</Text>
+                      <Text style={[styles.label, { fontFamily: 'Prompt-Regular' }]}>วันที่สิ้นสุด</Text>
                       {Platform.OS === 'web' ? (
                         <input
                           type="date"
@@ -460,9 +465,9 @@ export default function AddEditNews() {
                 </View>
                 {/* Right column */}
                 <View style={styles.middleColRight}>
-                  <Text style={styles.label}>เพิ่มเติม</Text>
+                  <Text style={[styles.label, { fontFamily: 'Prompt-Regular' }]}>เพิ่มเติม</Text>
                   <View >
-                    <Text style={styles.checkboxLabel}>ความสำคัญ <Text style={{ color: 'red' }}>*</Text></Text>
+                    <Text style={[styles.checkboxLabel, { fontFamily: 'Prompt-Regular' }]}>ความสำคัญ <Text style={{ color: 'red' }}>*</Text></Text>
                     <View style={styles.pickerWrapper}>
                       <Picker
                         selectedValue={form.priority}
@@ -482,9 +487,9 @@ export default function AddEditNews() {
                       value={form.isPinned}
                       onValueChange={v => handleChange('isPinned', v)}
                     />
-                    <Text style={styles.checkboxLabel}>ปักหมุด</Text>
+                    <Text style={[styles.checkboxLabel, { fontFamily: 'Prompt-Regular' }]}>ปักหมุด</Text>
                   </View>
-                  <Text style={styles.label}>Custom Slug</Text>
+                  <Text style={[styles.label, { fontFamily: 'Prompt-Regular' }]}>Custom Slug</Text>
                   <TextInput
                     style={styles.input}
                     value={form.customSlug}
@@ -529,6 +534,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 24,
     alignSelf: 'center',
+    fontFamily: 'Prompt-Bold',
   },
   topRow: {
     flexDirection: 'row',
@@ -548,6 +554,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     marginTop: 8,
     color: '#000',
+    fontFamily: 'Prompt-Regular',
   },
   input: {
     backgroundColor: '#fff',
@@ -557,10 +564,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ddd',
     marginBottom: 4,
+    fontFamily: 'Prompt-Regular',
   },
   textArea: {
     height: 48,
     textAlignVertical: 'top',
+    fontFamily: 'Prompt-Regular',
   },
   contentRow: {
     marginBottom: 16,
@@ -605,6 +614,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     color: '#aaa',
     fontSize: 16,
+    fontFamily: 'Prompt-Regular',
   },
   dateRow: {
     flexDirection: 'row',
@@ -623,6 +633,7 @@ const styles = StyleSheet.create({
     color: '#aaa',
     fontWeight: 'bold',
     alignSelf: 'flex-end',
+    fontFamily: 'Prompt-Bold',
   },
   buttonWrapper: {
     marginTop: 32,
@@ -640,5 +651,6 @@ const styles = StyleSheet.create({
   picker: {
     height: 44,
     width: '100%',
+    fontFamily: 'Prompt-Regular',
   },
 });

@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, Button, TouchableOpacity, Alert } from 'react-native';
-// import { useUser } from '../contexts/UserContext';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { deleteNews } from '../composables/fetchAPI';
-import profile from '../composables/profile.json'
+
 type ItemProps = {
   id: string;
   slug: string;
@@ -16,8 +15,8 @@ type ItemProps = {
   startAt?: string;
   endAt?: string;
   type?: string;
-  onDeleted?: () => void; // <-- add this
-  role?: string; // <-- add this
+  onDeleted?: () => void;
+  role?: string;
 };
 
 export default function Item({
@@ -28,14 +27,13 @@ export default function Item({
   coverImage,
   content,
   startAt,
-  endAt,
   type: newsType,
-  onDeleted, // <-- add this
+  onDeleted,
   role
 }: ItemProps) {
   const [loading, setLoading] = useState(true);
-  //console.log(role, "role in item")
   const router = useRouter();
+
   const handleEdit = () => {
     router.push({
       pathname: '/AddEditNews',
@@ -50,7 +48,6 @@ export default function Item({
     });
   };
 
-  // Format dates
   const formatDate = (iso?: string) => {
     if (!iso) return '';
     const d = new Date(iso);
@@ -58,14 +55,31 @@ export default function Item({
     return d.toLocaleDateString('th-TH', { year: 'numeric', month: '2-digit', day: '2-digit' });
   };
 
-  // Soft delete handler
+  // ฟังก์ชันแปลงประเภทเป็นภาษาไทยพร้อมอิโมจิ
+  const renderType = (type?: string) => {
+    switch (type?.toLowerCase()) {
+      case 'announcement':
+        return { label: 'ประกาศ 📢', color: '#E91E63' };
+      case 'promo':
+        return { label: 'โปรโมชั่น 🏷️', color: '#FF9800' };
+      case 'maintenance':
+        return { label: 'การบำรุงรักษา 🛠️', color: '#F44336' };
+      case 'system':
+        return { label: 'ระบบ ⚙️', color: '#4CAF50' };
+      default:
+        return { label: type || 'ข่าวสาร 📰', color: '#888' };
+    }
+  };
+
+  const typeInfo = renderType(newsType);
+
   const handleDelete = async (e?: any) => {
     if (e?.stopPropagation) e.stopPropagation();
     if (!window.confirm("คุณแน่ใจหรือไม่ว่าต้องการลบข่าวนี้")) return;
     try {
       await deleteNews(id);
       window.alert("ลบสำเร็จ ข่าวถูกลบแล้ว");
-      if (onDeleted) onDeleted(); // <-- call reload
+      if (onDeleted) onDeleted();
     } catch (e: any) {
       window.alert(e.message || "ไม่สามารถลบข่าวได้");
     }
@@ -74,13 +88,12 @@ export default function Item({
   return (
     <TouchableOpacity onPress={handlePress} activeOpacity={0.8}>
       <View style={styles.container}>
-
-        {/* Red X button for admin */}
         {role?.toLowerCase() === 'admin' && (
           <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
             <Text style={styles.deleteBtnText}>✕</Text>
           </TouchableOpacity>
         )}
+
         <View style={styles.imageWrapper}>
           {loading && <View style={styles.imagePlaceholder} />}
           <Image
@@ -89,28 +102,36 @@ export default function Item({
             onLoadEnd={() => setLoading(false)}
           />
         </View>
+
         <View style={styles.content}>
-          <Text style={styles.title}>{title}</Text>
-          <Text
-            style={styles.contentPreview}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {content}
-          </Text>
-          <Text style={styles.dateType}>
-            {formatDate(startAt)}
-          </Text>
-          <Text style={styles.typeText}>{newsType}</Text>
+          <View>
+            <Text style={styles.title} numberOfLines={1}>{title}</Text>
 
 
-          {role?.toLowerCase() === 'admin' && (
-            
-            <View style={styles.editButtonWrapper}>
-              <Button title="แก้ไข" onPress={handleEdit} />
-            </View>
-          )}
+            <Text
+              style={styles.contentPreview}
+              numberOfLines={2}
+              ellipsizeMode="tail"
+            >
+              {content}
+            </Text>
+          </View>
+          {/* ส่วนแสดงประเภทที่มีการปรับแต่งสี */}
+          <View style={[styles.typeBadge, { backgroundColor: typeInfo.color + '15' }]}>
+            <Text style={[styles.typeText, { color: typeInfo.color }]}>{typeInfo.label}</Text>
+          </View>
 
+          <View style={styles.bottomRow}>
+            <Text style={styles.dateText}>
+              📅 {formatDate(startAt)}
+            </Text>
+
+            {role?.toLowerCase() === 'admin' && (
+              <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
+                <Text style={styles.editButtonText}>แก้ไข</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
       </View>
     </TouchableOpacity>
@@ -120,45 +141,41 @@ export default function Item({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    marginVertical: 12,
+    marginVertical: 8,
     backgroundColor: '#fff',
-    borderRadius: 16,
-    overflow: 'hidden',
+    borderRadius: 20,
     padding: 12,
-    alignItems: 'flex-start',
-    // Shadow for iOS/web
+    alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    // Shadow for Android
-    elevation: 6,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
     position: 'relative',
   },
   deleteBtn: {
     position: 'absolute',
-    top: 8,
-    right: 8,
+    top: -5,
+    right: -5,
     zIndex: 10,
     backgroundColor: '#fff',
-    borderRadius: 16,
-    width: 28,
-    height: 28,
+    borderRadius: 15,
+    width: 26,
+    height: 26,
     alignItems: 'center',
     justifyContent: 'center',
-    // borderWidth: 1,
-    // borderColor: '#f44',
+    elevation: 5,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
     shadowRadius: 2,
+    borderWidth: 0.5,
+    borderColor: '#eee'
   },
   deleteBtnText: {
     color: '#f44',
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: 'bold',
-    lineHeight: 22,
-    fontFamily: 'Prompt-Regular'
   },
   imageWrapper: {
     width: 120,
@@ -177,58 +194,64 @@ const styles = StyleSheet.create({
   },
   imagePlaceholder: {
     position: 'absolute',
-    width: 120,
-    height: 120,
+    width: '100%',
+    height: '100%',
     backgroundColor: '#ddd',
-    borderRadius: 24,
   },
   image: {
-    width: 120,
-    height: 120,
-    borderRadius: 24,
+    width: '100%',
+    height: '100%',
   },
   content: {
     flex: 1,
-    minHeight: 120,
-    justifyContent: 'flex-start',
-    paddingVertical: 4,
-    position: 'relative',
-    fontFamily: 'Prompt-Regular'
+    height: 100,
+    marginLeft: 10,
+    justifyContent: 'space-between',
   },
   title: {
     fontWeight: 'bold',
     fontSize: 18,
-    marginBottom: 6,
-    fontFamily: 'Prompt-Regular'
+    color: '#333',
+    fontFamily: 'Prompt-Bold',
+    marginBottom: 2,
+  },
+  typeBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginBottom: 4,
+  },
+  typeText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    fontFamily: 'Prompt-Bold',
   },
   contentPreview: {
     fontSize: 12,
-    color: '#444',
-    marginBottom: 2,
-    minHeight: 28,
-    fontFamily: 'Prompt-Regular'
-  },
-  dateType: {
-    fontSize: 12,
     color: '#666',
-    marginBottom: 8,
-    fontFamily: 'Prompt-Regular'
+    lineHeight: 16,
+    fontFamily: 'Prompt-Regular',
   },
-  typeText: {
+  bottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dateText: {
     fontSize: 12,
-    color: '#888',
-    marginBottom: 8,
+    color: '#999',
     fontFamily: 'Prompt-Regular'
   },
-  editButtonWrapper: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    padding: 0,
-    margin: 0,
-    borderRadius: 8,
-    overflow: 'hidden',
+  editButton: {
     backgroundColor: '#0097a7',
+    borderRadius: 6,
+    paddingVertical: 3,
+    paddingHorizontal: 10,
+  },
+  editButtonText: {
+    color: '#fff',
+    fontSize: 14,
     fontFamily: 'Prompt-Regular'
   },
 });

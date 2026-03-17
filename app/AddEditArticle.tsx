@@ -4,6 +4,8 @@ import { createArticle, updateArticle, getArticles, uploadFile, getArticleBySlug
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { UserProvider,useUser } from '../components/UserProvider';
+import { useFonts } from 'expo-font';
+import AppLoading from 'expo-app-loading';
 
 const defaultArticle = {
   title: '',
@@ -37,7 +39,11 @@ export default function AddEditArticle() {
   // Add this state at the top
   const [originalCustomSlug, setOriginalCustomSlug] = useState<string | undefined>('');
 
-
+ const [fontsLoaded] = useFonts({
+    'Prompt-Regular': require('../assets/fonts/Prompt-Regular.ttf'),
+    'Prompt-Bold': require('../assets/fonts/Prompt-Bold.ttf'),
+  });
+  if (!fontsLoaded) return <AppLoading />;
   // Load article for edit
   useEffect(() => {
     if (mode === 'edit' && slug) {
@@ -274,7 +280,7 @@ export default function AddEditArticle() {
         <View style={styles.card}>
           <Text style={styles.header}>{mode === 'add' ? 'สร้างบทความ' : 'แก้ไขบทความ'}</Text>
           {loading ? (
-            <Text style={{ textAlign: 'center', marginVertical: 24 }}>กำลังโหลดข้อมูล...</Text>
+            <Text style={{ textAlign: 'center', marginVertical: 24, fontFamily: 'Prompt-Regular' }}>กำลังโหลดข้อมูล...</Text>
           ) : (
             <>
               {/* Top row: Title, Status, Tags */}
@@ -354,7 +360,7 @@ export default function AddEditArticle() {
                 </Text>
                 <View style={{ height: 200, backgroundColor: '#fff', borderRadius: 24, marginBottom: 8, borderWidth: 1, borderColor: '#ddd' }}>
                   <TextInput
-                    style={{ width: '100%', height: 180, borderRadius: 16, padding: 12, fontSize: 16 }}
+                    style={{ width: '100%', height: 180, borderRadius: 16, padding: 12, fontSize: 16, textAlignVertical: 'top', fontFamily: 'Prompt-Regular' }}
                     value={form.content?.content || ''}
                     onChangeText={v => handleChange('content', { ...form.content, content: v })}
                     placeholder="กรอกเนื้อหา"
@@ -381,6 +387,7 @@ export default function AddEditArticle() {
                       marginBottom: 4,
                       width: 210, // <-- set your desired width here
                       alignSelf: 'flex-start', // optional: aligns to the left
+                      fontFamily: 'Prompt-Regular',
                     }}
                     value={form.customSlug}
                     onChangeText={v => handleChange('customSlug', v)}
@@ -515,6 +522,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 24,
     alignSelf: 'center',
+    fontFamily: 'Prompt-Bold',
   },
   topRow: {
     flexDirection: 'row',
@@ -544,6 +552,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     marginTop: 8,
     color: '#000',
+    fontFamily: 'Prompt-Regular',
   },
   input: {
     backgroundColor: '#fff',
@@ -553,6 +562,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ddd',
     marginBottom: 4,
+    fontFamily: 'Prompt-Regular',
+
   },
   contentRow: {
     marginBottom: 16,
@@ -580,6 +591,7 @@ const styles = StyleSheet.create({
     marginTop: 32,
     marginBottom: 8,
     alignItems: 'flex-start', // <-- align left
+    fontFamily: 'Prompt-Regular',
 
   },
   tagButton: {
@@ -597,6 +609,7 @@ const styles = StyleSheet.create({
     color: '#3730a3',
     fontSize: 15,
     marginRight: 4,
+    fontFamily: 'Prompt-Regular',
   },
   tagRemove: {
     color: '#ef4444',
@@ -605,5 +618,6 @@ const styles = StyleSheet.create({
     marginLeft: 2,
     marginRight: 2,
     lineHeight: 18,
+    fontFamily: 'Prompt-Bold',
   },
 });

@@ -7,6 +7,9 @@ import { getArticles } from '../../composables/fetchAPI';
 import { useUser } from '../../components/UserProvider'
 import ProfileBar from '../../components/ProfileBar';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useFonts } from 'expo-font';
+import AppLoading from 'expo-app-loading'; // ใช้สำหรับแสดงหน้ารอโหลดฟอนต์
+import ArticleSkeleton from '../components/ArticleSkeleton';
 
 export default function ArticleScreen() {
   const router = useRouter();
@@ -14,6 +17,14 @@ export default function ArticleScreen() {
   const [loading, setLoading] = React.useState(false);
   const [search, setSearch] = React.useState('');
   const user = useUser();
+  const [fontsLoaded] = useFonts({
+    'Prompt-Regular': require('../../assets/fonts/Prompt-Regular.ttf'),
+    'Prompt-Bold': require('../../assets/fonts/Prompt-Bold.ttf'),
+  });
+
+  if (!fontsLoaded) {
+    return <AppLoading />; // แสดงหน้ารอโหลดฟอนต์
+  }
 
   const fetchArticles = async () => {
     setLoading(true);
@@ -72,7 +83,7 @@ export default function ArticleScreen() {
         <View style={{ flex: 1 }}>
           <ProfileBar
             avatarUrl={userProfile.avatarUrl || userProfile.picture}
-            name={userProfile.name || userProfile.displayName || 'Nancy'}
+            name={userProfile.name || userProfile.displayName || 'Guest'}
           />
         </View>
         <TouchableOpacity style={{ marginLeft: 8 }}>
@@ -100,7 +111,7 @@ export default function ArticleScreen() {
                   paddingVertical: 8,
                 }}
               >
-                <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 15 }}>Create Article</Text>
+                <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 15, fontFamily: 'Prompt-Bold' }}>Create Article</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -124,7 +135,7 @@ export default function ArticleScreen() {
       }}>
         <Ionicons name="search" size={20} color="#bbb" style={{ marginLeft: 4 }} />
         <TextInput
-          style={{ flex: 1, fontSize: 15, color: '#222', marginLeft: 8 }}
+          style={{ flex: 1, fontSize: 15, color: '#222', marginLeft: 8, fontFamily: 'Prompt-Regular' }}
           placeholder="Search Article"
           value={search}
           onChangeText={setSearch}
@@ -135,15 +146,25 @@ export default function ArticleScreen() {
 
       {/* Articles List */}
       <ScrollView
-        style={{ flex: 1, marginTop: 8 }}
-        showsVerticalScrollIndicator={false}
-        
-      >
-        {filteredArticles.length === 0 ? (
-        <Text style={{ textAlign: 'center', marginTop: 40, color: '#888' }}>
+  style={{ flex: 1, marginTop: 8 }}
+  showsVerticalScrollIndicator={false}
+>
+  {/* 1. ถ้ากำลัง Loading ให้แสดง Skeleton สัก 3-4 อัน */}
+  {loading ? (
+    <>
+      <ArticleSkeleton />
+      <ArticleSkeleton />
+      <ArticleSkeleton />
+    </>
+  ) : (
+    <>
+      {/* 2. ถ้าโหลดเสร็จแล้วแต่ไม่มีข้อมูล */}
+      {filteredArticles.length === 0 && !loading ? (
+        <Text style={{ textAlign: 'center', marginTop: 40, color: '#888', fontFamily: 'Prompt-Regular' }}>
           ไม่พบข้อมูลข่าวสาร
         </Text>
       ) : (
+        /* 3. ถ้าโหลดเสร็จและมีข้อมูล */
         filteredArticles.map(article => (
           <ArticleItem
             slug={article.slug}
@@ -151,6 +172,7 @@ export default function ArticleScreen() {
             id={article.id}
             title={article.title}
             content={
+              // ... โค้ดจัดการ content เดิมของคุณ ...
               Array.isArray(article.content?.content)
                 ? article.content.content
                   .map((node: any) =>
@@ -167,12 +189,13 @@ export default function ArticleScreen() {
             date={article.publishDate}
             tags={article.tags}
             onDeleted={fetchArticles}
-            role={user?.user?.role} // Add null checks here
+            role={user?.user?.role}
           />
         ))
       )}
-        {loading && <Text>Loading...</Text>}
-      </ScrollView>
+    </>
+  )}
+</ScrollView>
     </View>
   );
 }

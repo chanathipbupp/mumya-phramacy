@@ -255,35 +255,80 @@ const RewardCard = ({
   //     Alert.alert('คัดลอกสำเร็จ', 'คัดลอก ShortCode เรียบร้อยแล้ว');
   //   }
   // };
+const isInactive = item.status === 'used' || item.status === 'expired';
 
   if (mode === 'owned') {
     return (
-      <>
-        <TouchableOpacity onPress={handleUseReward}>
-          <View style={styles.cardOwned}>
-            <View style={styles.imagePlaceholder}>
+      <View style={[styles.ticketWrapper, isInactive && { opacity: 0.6 }]}>
+        <TouchableOpacity onPress={handleUseReward} activeOpacity={0.9} disabled={isInactive}>
+          <View style={styles.ticketContainer}>
+            {/* ส่วนบน: รูปภาพ */}
+            <View style={styles.ticketTopSection}>
               <Image
                 source={{
                   uri: item.imageUrl || 'https://cdn.kasidate.me/images/a6b70c7c88f54c3afbed800483c330fb188534056d571e98c4c0b65d8dfedd4c.png',
                 }}
-                style={styles.image}
+                style={styles.ticketImage}
               />
             </View>
-            <View style={styles.cardContent}>
-              <Text style={styles.cardTitle}
-                numberOfLines={1} // จำกัดให้แสดงเพียง 1 บรรทัด
-                ellipsizeMode="tail" // ตัดข้อความที่เกินด้วย ...
-              >{item.title || 'ชื่อ Reward'}</Text>
-              <Text style={styles.cardPoints}>{item.points || '0'} P</Text>
-              <TouchableOpacity style={styles.useBtn} onPress={handleUseReward}>
-                <Text style={styles.useBtnText}>ใช้คูปอง</Text>
+
+            {/* ส่วนรอยปรุและรอยเจาะวงกลม */}
+            <View style={styles.punchHoleContainer}>
+              <View style={styles.punchHoleLeft} />
+              <View style={styles.ticketDashedLine} />
+              <View style={styles.punchHoleRight} />
+            </View>
+
+            {/* ส่วนล่าง: ข้อมูล */}
+            <View style={styles.ticketBottomSection}>
+              <Text
+                style={styles.ticketTitle}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {item.title || 'ชื่อ Reward'}
+              </Text>
+
+              <Text
+                style={styles.ticketDescription}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {item.description || 'ไม่มีระบุ'}
+              </Text>
+
+              <TouchableOpacity
+                style={[
+                  styles.ticketActionBtn,
+                  item.status === 'used' && { backgroundColor: 'gray' } // เปลี่ยนสีปุ่มเป็นสีเทา
+                ]}
+                onPress={item.status === 'used' || item.status === 'expired' ? undefined : handleUseReward} // ปิดการกดปุ่มถ้า status เป็น used หรือ expired
+                activeOpacity={item.status === 'used' || item.status === 'expired' ? 1 : 0.8} // ปิดการเปลี่ยนแปลง opacity เมื่อกดปุ่ม
+              >
+                <LinearGradient
+                  colors={
+                    item.status === 'used'||item.status === 'expired'
+                      ? ['#d3d3d3', '#a9a9a9', '#808080'] // สีเทาเมื่อใช้งานแล้ว
+                      : ['#1e88e5', '#0a65ae', '#084b8a'] // สีปกติ
+                  }
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.ticketActionGradient}
+                >
+                  <Text style={styles.ticketActionBtnText}>
+                    {item.status === 'used' ? 'ใช้งานแล้ว' : item.status === 'expired' ? 'หมดอายุ' : 'ใช้คูปอง'}
+                  </Text>
+                </LinearGradient>
               </TouchableOpacity>
-              <Text style={styles.expiryText}>หมดอายุ: {item.expiry || 'ไม่พบวันหมดอายุ'}</Text>
+
+              <Text style={styles.ticketExpiryText}>
+                หมดอายุ: {item.expiry || 'ไม่พบวันหมดอายุ'}
+              </Text>
             </View>
           </View>
         </TouchableOpacity>
 
-        {/* Modal สำหรับแสดงโค้ด */}
+        {/* Modal สำหรับแสดงโค้ด (โค้ดเดิมของคุณ) */}
         <Modal
           visible={modalVisible}
           animationType="fade"
@@ -317,85 +362,94 @@ const RewardCard = ({
             </View>
           </TouchableWithoutFeedback>
         </Modal>
-      </>
+      </View>
     );
   }
   // Layout แบบแนวนอน (แลกของรางวัล)
   return (
     <>
-      <View style={[styles.cardAvailable, isLimitReached && !adminMode ? { opacity: 0.7 } : null]}>
-        {/* --- ปุ่มลบบนขวาสำหรับ Admin --- */}
+      <TouchableOpacity
+        style={[styles.cardAvailable, isLimitReached && !adminMode ? { opacity: 0.7 } : null]}
+        onPress={handleRedeemPress}
+        activeOpacity={0.9}
+      >
+        {/* 1. ปุ่มลบบนขวาสำหรับ Admin */}
         {adminMode && (
-          <TouchableOpacity
-            style={styles.deleteBadge}
-            onPress={handleDeletePress}
-          >
+          <TouchableOpacity style={styles.deleteBadge} onPress={handleDeletePress}>
             <Text style={styles.deleteBadgeText}>✕</Text>
           </TouchableOpacity>
         )}
-        <View style={[styles.imagePlaceholderHorizontal, isLimitReached && !adminMode && { backgroundColor: '#eee' }]}>
-          {item.imageUrl ? (
-            <Image
-              source={{ uri: item.imageUrl }}
-              style={[styles.image, isLimitReached && !adminMode && { grayscale: 1 } as any]}
-            />
-          ) : (
-            <Image
-              source={{ uri: 'https://cdn.kasidate.me/images/a6b70c7c88f54c3afbed800483c330fb188534056d571e98c4c0b65d8dfedd4c.png' }}
-              style={[styles.image, isLimitReached && !adminMode && { grayscale: 1 } as any]}
-            />
-          )}
+
+        {/* 1.1 รูปภาพ (จัตุรัสฝั่งซ้าย) */}
+        <View style={styles.imageWrapperHorizontal}>
+          <Image
+            source={{ uri: item.imageUrl || 'https://cdn.kasidate.me/images/a6b70c7c88f54c3afbed800483c330fb188534056d571e98c4c0b65d8dfedd4c.png' }}
+            style={styles.imageHorizontal}
+          />
         </View>
-        <View style={styles.cardContentHorizontal}>
-          <View style={{ flex: 1 }}>
-            <Text
-              style={[styles.cardTitle, isLimitReached && !adminMode && { color: '#999' }]}
-              numberOfLines={1} // จำกัดให้แสดงเพียง 1 บรรทัด
-              ellipsizeMode="tail" // ตัดข้อความที่เกินด้วย ...
-            >
-              {item.title}
-            </Text>
-            {adminMode && (
-              <Text style={[styles.cardType, isLimitReached && !adminMode && { color: '#999' }]}>ประเภท: {item.type || 'ไม่ระบุ'}</Text>
-            )}
 
-            <Text style={styles.cardDetail} numberOfLines={1}>{item.description || 'ไม่มีรายละเอียด'}</Text>
+        {/* 2. รอยปรุคั่นกลาง */}
+        <View style={styles.ticketDividerContainer}>
+          <View style={styles.dashDivider} />
+        </View>
 
-            {/* แสดงจำนวนสิทธิ์ (เช่น 1/5) */}
-            <Text style={styles.limitText}>
+        {/* --- 3. ส่วนเนื้อหาฝั่งขวา (ขยายเต็มพื้นที่) --- */}
+        <View style={{ flex: 1, padding: 12, justifyContent: 'space-between' }}>
+
+          {/* แถวบน: ข้อมูลชื่อ และ ปุ่มแลก (วางคู่กัน) */}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <View style={{ flex: 1, marginRight: 8 }}>
+              <Text style={styles.cardTitle} numberOfLines={1} ellipsizeMode="tail">
+                {item.title}
+              </Text>
+              <Text style={styles.cardDetail} numberOfLines={1}>
+                {item.description || 'ไม่มีรายละเอียด'}
+              </Text>
+              <Text style={[styles.cardPointsHighlight, { marginTop: 4 }]}>{item.pointCost} P</Text>
+            </View>
+
+            {/* ปุ่มแลก/Gift วางตรงนี้ */}
+            <View>
+              {adminMode && item.type === 'special' ? (
+                <View style={{ alignItems: 'center' }}>
+                  <GiftButton onPress={() => setGiftModalVisible(true)} />
+                  <Text style={{ marginTop: 4, fontSize: 10, fontWeight: 'bold', color: '#E91E63', fontFamily: "Prompt-Regular" }}>ให้ของขวัญ</Text>
+                </View>
+              ) : !adminMode && (
+                <TouchableOpacity
+                  style={styles.horizontalGradientBtn}
+                  onPress={handleRedeemPress}
+                  disabled={isLimitReached || isRedeeming}
+                >
+                  {isLimitReached ? (
+                    <View style={styles.horizontalDisabledContainer}>
+                      <Text style={[styles.horizontalActionBtnText, { color: '#999', fontSize: 10 }]}>เต็มแล้ว</Text>
+                    </View>
+                  ) : (
+                    <LinearGradient
+                      colors={['#1e88e5', '#0a65ae', '#084b8a']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.horizontalGradientPadding}
+                    >
+                      <Text style={styles.horizontalActionBtnText}>แลก</Text>
+                    </LinearGradient>
+                  )}
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+
+          {/* แถวล่างสุด: สิทธิ์คงเหลือ (ยาวได้เต็มที่จนถึงขอบขวา) */}
+          <View style={{ borderTopWidth: 0, paddingTop: 4 }}>
+            <Text style={[styles.limitText, { width: '100%' }]} numberOfLines={1}>
               {adminMode
                 ? `ขีดจำกัดต่อคน: ${item.redemptionLimitPerUser || 'ไม่จำกัด'} ครั้ง`
                 : `สิทธิ์คงเหลือ: ${currentRedeemedCount}/${redemptionLimit || 'ไม่มีกำหนด'}`}
             </Text>
-
-            <Text style={styles.cardPointsSmall}>แต้มที่ต้องใช้: {item.pointCost} P</Text>
           </View>
-          {adminMode && item.type === 'special' && (
-            <View style={{ flexDirection: 'column', alignItems: 'center' }}>
-              <GiftButton
-                onPress={() => setGiftModalVisible(true)}
-                disabled={isLimitReached}
-              />
-              <Text style={{ marginTop: 4, fontSize: 12, fontWeight: 'bold', color: '#E91E63', fontFamily: "Prompt-Regular" }}>ให้ของขวัญ</Text>
-            </View>
-
-          )}
-          {!adminMode && (
-            <TouchableOpacity
-              style={[
-                styles.adminBtn,
-                isLimitReached ? styles.disabledBtn : null // เปลี่ยนสไตล์ถ้าสิทธิ์เต็ม
-              ]}
-              onPress={handleRedeemPress}
-              disabled={isLimitReached || isRedeeming} // ปิดการใช้งานถ้าสิทธิ์เต็ม
-            >
-              <Text style={[styles.exchangeBtnText, isLimitReached && { color: '#888' }]}>
-                {isLimitReached ? 'แลกครบแล้ว' : 'แลก'}
-              </Text>
-            </TouchableOpacity>
-          )}
         </View>
-      </View>
+      </TouchableOpacity>
 
 
       {/* --- Modal ส่งของขวัญ (เพิ่มใหม่ตามรูป) --- */}
@@ -465,48 +519,63 @@ const RewardCard = ({
         </TouchableWithoutFeedback>
       </Modal>
 
-      {/* --- Modal ยืนยันการแลกแต้ม (เพิ่มใหม่) --- */}
+      {/* --- Modal ยืนยันการแลกแต้ม (Theme Blue Gradient) --- */}
       <Modal
         visible={confirmModalVisible}
         animationType="fade"
         transparent={true}
-        onRequestClose={() => setConfirmModalVisible(false)}
+        onRequestClose={() => !isRedeeming && setConfirmModalVisible(false)}
       >
         <TouchableWithoutFeedback onPress={() => !isRedeeming && setConfirmModalVisible(false)}>
           <View style={styles.modalOverlay}>
             <TouchableWithoutFeedback>
-              <View style={styles.modalContainer}>
-                <Text style={styles.confirmModalTitle}>ยืนยันการแลกรับสิทธิ์</Text>
-
-                <View style={styles.confirmInfoBox}>
-                  <Text style={styles.confirmItemTitle}>{item.title}</Text>
-                  <Text style={styles.confirmItemDesc}>{item.description || 'ไม่มีรายละเอียด'}</Text>
-                  <View style={styles.confirmPointRow}>
-                    <Text style={styles.confirmPointLabel}>แต้มที่ใช้:</Text>
-                    <Text style={styles.confirmPointValue}>{item.pointCost || 0} P</Text>
-                  </View>
+              <View style={[styles.modalContainer, { padding: 0, overflow: 'hidden', borderRadius: 20 }]}>
+                {/* Header ส่วนหัวข้อ */}
+                <View style={{ backgroundColor: '#f8f9fa', paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#eee', width: '100%', alignItems: 'center' }}>
+                  <Text style={styles.confirmModalTitle}>ยืนยันการแลกรับสิทธิ์</Text>
                 </View>
 
-                <View style={styles.confirmBtnRow}>
-                  <TouchableOpacity
-                    style={[styles.modalCancelBtn, isRedeeming && { opacity: 0.5 }]}
-                    onPress={() => setConfirmModalVisible(false)}
-                    disabled={isRedeeming}
-                  >
-                    <Text style={styles.modalCancelBtnText}>ยกเลิก</Text>
-                  </TouchableOpacity>
+                <View style={{ padding: 20, width: '100%' }}>
+                  <View style={styles.confirmInfoBox}>
+                    <Text style={styles.confirmItemTitle}>{item.title}</Text>
+                    <Text style={styles.confirmItemDesc} numberOfLines={2}>{item.description || 'ไม่มีรายละเอียด'}</Text>
 
-                  <TouchableOpacity
-                    style={[styles.modalConfirmBtn, isRedeeming && { opacity: 0.5 }]}
-                    onPress={handleConfirmRedeem}
-                    disabled={isRedeeming}
-                  >
-                    {isRedeeming ? (
-                      <ActivityIndicator size="small" color="#fff" />
-                    ) : (
-                      <Text style={styles.modalConfirmBtnText}>แลกเลย</Text>
-                    )}
-                  </TouchableOpacity>
+                    <View style={styles.confirmPointRow}>
+                      <Text style={styles.confirmPointLabel}>แต้มที่ต้องใช้:</Text>
+                      <Text style={[styles.confirmPointValue, { fontSize: 20 }]}>{item.pointCost || 0} P</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.confirmBtnRow}>
+                    <TouchableOpacity
+                      style={[styles.modalCancelBtn, isRedeeming && { opacity: 0.5 }]}
+                      onPress={() => setConfirmModalVisible(false)}
+                      disabled={isRedeeming}
+                    >
+                      <Text style={styles.modalCancelBtnText}>ไว้ทีหลัง</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={{ flex: 1, height: 48, borderRadius: 12, overflow: 'hidden' }}
+                      onPress={handleConfirmRedeem}
+                      disabled={isRedeeming}
+                    >
+                      {isRedeeming ? (
+                        <View style={[styles.modalConfirmBtn, { backgroundColor: '#ccc' }]}>
+                          <ActivityIndicator size="small" color="#fff" />
+                        </View>
+                      ) : (
+                        <LinearGradient
+                          colors={['#1e88e5', '#0a65ae', '#084b8a']}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+                        >
+                          <Text style={[styles.modalConfirmBtnText, { fontSize: 16 }]}>แลกเลย</Text>
+                        </LinearGradient>
+                      )}
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             </TouchableWithoutFeedback>
@@ -1349,6 +1418,7 @@ export default function TabTwoScreen() {
                             points: item.pointsUsed,
                             expiry: new Date(item.expireAt).toLocaleDateString(),
                             shortCode: item.shortCode,
+                            status: item.status,
                             fullCode: item.fullCode,
                             imageUrl: item.imageUrl,
                             ...item.reward,
@@ -1368,11 +1438,11 @@ export default function TabTwoScreen() {
                           </View>
                         ) : null
                       )}
-                      contentContainerStyle={{ paddingBottom: 10 }}
+                      contentContainerStyle={{ paddingBottom: 4 }}
                     />
                   )}
                   {/* Section: แลกของรางวัล */}
-                  <Text style={[styles.sectionHeader, { marginTop: 24 }]}>แลกของรางวัล</Text>
+                  <Text style={[styles.sectionHeader, { marginTop: 18 }]}>แลกของรางวัล✨</Text>
 
                   <View style={styles.verticalList}>
                     {/* แสดงรายการที่มีอยู่เสมอ */}
@@ -1984,7 +2054,7 @@ export default function TabTwoScreen() {
                         <Text style={{ color: '#666', fontSize: 14, fontFamily: 'Prompt-Regular' }}>
                           เบอร์โทร: {redemptionData.user?.phone || 'ไม่ระบุเบอร์'}
                         </Text>
-                      </View>                      
+                      </View>
                       <Text style={{ fontSize: 16, color: '#E91E63', fontWeight: 'bold', fontFamily: 'Prompt-Bold' }}>
                         แต้มที่หักไป: {redemptionData.pointsUsed} P
                       </Text>
@@ -2303,12 +2373,137 @@ const styles = StyleSheet.create({
   cardAvailable: {
     flexDirection: 'row',
     backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 10,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#000',
+    borderRadius: 16,
+    marginVertical: 10,
+    marginHorizontal: 16,
+    height: 120, // กำหนดความสูงคงที่เพื่อให้ดูเหมือนตั๋ว
+    // Shadow สำหรับ iOS
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    // Shadow สำหรับ Android
+    elevation: 8,
+    overflow: 'visible', // สำคัญ: เพื่อให้รอยเจาะล้นออกมาได้นิดหน่อยถ้าจำเป็น
   },
+
+  // 1.1 ส่วนรูปภาพ (ซ้าย)
+  imageWrapperHorizontal: {
+    width: 110,
+    height: '100%',
+    backgroundColor: '#f9f9f9',
+    borderTopLeftRadius: 16,
+    borderBottomLeftRadius: 16,
+    overflow: 'hidden',
+  },
+  imageHorizontal: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+
+  // 2. ส่วนรอยเจาะตั๋ว (เส้นคั่นกลาง)
+  ticketDividerContainer: {
+    width: 20,
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff', // สีเดียวกับพื้นหลัง Card
+  },
+  // punchHoleTop: {
+  //   position: 'absolute',
+  //   top: -12,
+  //   width: 24,
+  //   height: 24,
+  //   borderRadius: 12,
+  //   borderBottomColor: '#ddd',
+  //   // เปลี่ยนจาก #F5F5F5 เป็นสีพื้นหลังหน้าจอของคุณ
+  //   // ถ้าใช้ Gradient ให้เลือกสีที่อยู่ตรงตำแหน่งนั้นๆ ครับ
+  //   backgroundColor: '#fff',
+  // },
+  // punchHoleBottom: {
+  //   position: 'absolute',
+  //   bottom: -12,
+  //   width: 24,
+  //   height: 24,
+  //   borderRadius: 12,
+  //   backgroundColor: '#fff', // สีเดียวกับข้างบน
+  //   borderTopColor: '#ddd',
+  // },
+  dashDivider: {
+    height: '100%', // ไม่ให้เส้นประติดขอบวงกลมเกินไป
+    width: 1,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderStyle: 'dashed',
+  },
+
+  // 1.2 ส่วนข้อมูล (กลาง)
+  cardContentHorizontal: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    justifyContent: 'space-between',
+  },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    fontFamily: 'Prompt-Bold',
+    flex: 1,
+    marginRight: 4,
+  },
+  cardPointsHighlight: {
+    fontSize: 18,
+    color: '#1e88e5',
+    fontFamily: 'Prompt-Bold',
+  },
+  cardDetail: {
+    fontSize: 12,
+    color: '#777',
+    fontFamily: 'Prompt-Regular',
+    marginVertical: 2,
+  },
+  limitText: {
+    fontSize: 11,
+    color: '#1e88e5',
+    fontWeight: '600',
+    fontFamily: 'Prompt-Regular',
+  },
+
+  // 1.3 ส่วนปุ่มแลก (ขวา)
+
+  horizontalGradientBtn: {
+    width: '100%',
+    height: 40,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  horizontalGradientPadding: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  horizontalActionBtnText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+    fontFamily: 'Prompt-Bold',
+  },
+  disabledBtn: {
+    backgroundColor: '#eee',
+    borderRadius: 20,
+    width: '100%',
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
   // imagePlaceholder: {
   //   height: 100,
   //   backgroundColor: '#fff',
@@ -2331,9 +2526,9 @@ const styles = StyleSheet.create({
   },
   placeholderText: { fontSize: 16, fontWeight: 'bold', fontFamily: 'Prompt-Bold' },
   cardContent: { padding: 10, alignItems: 'flex-start' },
-  cardContentHorizontal: { flex: 1, paddingLeft: 15, flexDirection: 'row', alignItems: 'center' },
-  cardTitle: { fontSize: 14, fontWeight: 'bold', fontFamily: 'Prompt-Bold' },
-  cardDetail: { fontSize: 12, color: '#666', fontFamily: 'Prompt-Regular' },
+  // cardContentHorizontal: { flex: 1, paddingLeft: 15, flexDirection: 'row', alignItems: 'center' },
+  // cardTitle: { fontSize: 14, fontWeight: 'bold', fontFamily: 'Prompt-Bold' },
+  // cardDetail: { fontSize: 12, color: '#666', fontFamily: 'Prompt-Regular' },
   cardType: { fontSize: 10, color: '#666', marginTop: 4, fontFamily: 'Prompt-Regular' },
   cardPoints: { fontSize: 16, fontWeight: 'bold', marginVertical: 4, fontFamily: 'Prompt-Bold' },
   cardPointsSmall: { fontSize: 14, fontWeight: 'bold', fontFamily: 'Prompt-Bold' },
@@ -2363,7 +2558,7 @@ const styles = StyleSheet.create({
   },
   exchangeBtnText: { fontWeight: 'bold', fontFamily: 'Prompt-Bold' },
   durationText: { fontSize: 10, color: '#666', marginTop: 5, fontFamily: 'Prompt-Regular' },
-  verticalList: { paddingBottom: 20 },
+  verticalList: { padding: 4 },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -3086,4 +3281,150 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontFamily: 'Prompt-Regular',
   },
+  ticketWrapper: {
+    marginRight: 15,
+    marginBottom: 10,
+  },
+  ticketContainer: {
+    width: 170,              // ปรับความกว้างตามที่ต้องการได้เลย (เช่น 180, 220, 250)
+    aspectRatio: 200 / 350,   // ระบบจะคำนวณความสูงให้เองอัตโนมัติรักษาสัดส่วนเดิมเป๊ะ
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    overflow: 'hidden',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  ticketTopSection: {
+    flex: 1.2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 15,
+  },
+  ticketImage: {
+    width: '100%',
+    height: '100%',
+    contentFit: 'contain',
+  },
+  punchHoleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 20,
+    width: '100%',
+  },
+  punchHoleLeft: {
+    width: 25,
+    height: 25,
+    borderRadius: 15,
+    backgroundColor: '#f0faff', // สีเดียวกับพื้นหลัง ScrollView
+    marginLeft: -10,            // เลื่อนออกไปครึ่งวงกลม
+    borderRightWidth: 1,
+    borderColor: '#ddd',
+
+  },
+  punchHoleRight: {
+    width: 25,
+    height: 25,
+    borderRadius: 15,
+    backgroundColor: '#f0faff', // สีเดียวกับพื้นหลัง ScrollView
+    marginRight: -10,           // เลื่อนออกไปครึ่งวงกลม
+    borderLeftWidth: 1,
+    borderColor: '#ddd',
+  },
+  ticketDashedLine: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderStyle: 'dashed',
+    height: 1,
+    marginHorizontal: 2,
+  },
+  ticketBottomSection: {
+    flex: 1.5,
+    padding: 15,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  ticketTitle: {
+    fontSize: 14,
+    fontFamily: 'Prompt-Bold',
+    textAlign: 'center',
+    color: '#000',
+    lineHeight: 18,
+  },
+  ticketDescription: {
+    fontSize: 10,
+    fontFamily: 'Prompt-Regular',
+    textAlign: 'left',
+    color: '#999',
+    marginVertical: 2,
+  },
+  ticketActionBtn: {
+    // ถอด backgroundColor ออกจากตัวปุ่ม
+    // backgroundColor: '#0a65ae', 
+    width: '90%',
+    borderRadius: 12, // กำหนด borderRadius ที่ตัวปุ่มเพื่อให้ขอบมน
+    overflow: 'hidden', // กัน Gradient เลยขอบปุ่ม
+    elevation: 4, // เพิ่มเงาเล็กน้อยเพื่อให้ปุ่มดูลอยขึ้น
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+  },
+  // สไตล์ใหม่สำหรับ LinearGradient
+  ticketActionGradient: {
+    flex: 1, // ให้ขยายเต็มพื้นที่ของปุ่ม
+    paddingVertical: 12, // ปรับ paddingVertical เพื่อให้ปุ่มดูสูงขึ้น
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ticketActionBtnText: {
+    color: '#fff',
+    fontSize: 16, // เพิ่มขนาดฟอนต์เล็กน้อย
+    fontFamily: 'Prompt-Bold',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)', // เพิ่มเงาที่ตัวอักษรเพื่อให้ดูคมขึ้น
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
+  ticketExpiryText: {
+    fontSize: 10,
+    color: '#999',
+    fontFamily: 'Prompt-Regular',
+    marginTop: 5,
+  },
+  horizontalGradientBtn: {
+    borderRadius: 20, // ทรงแคปซูล
+    overflow: 'hidden',
+    minWidth: 80,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
+  },
+  horizontalGradientPadding: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  horizontalDisabledContainer: {
+    backgroundColor: '#e0e0e0', // สีเทาสำหรับปุ่มปิดใช้งาน
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  horizontalActionBtnText: {
+    color: '#fff',
+    fontSize: 14,
+    fontFamily: 'Prompt-Bold',
+    // ถ้าสถานะ disabled อาจจะเปลี่ยนสีตัวอักษรเป็นสีเทาเข้ม
+  },
+
 });

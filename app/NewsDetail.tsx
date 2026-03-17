@@ -1,8 +1,49 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Linking } from 'react-native';
+import { Animated,View, Text, Image, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Linking } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { getNewsBySlug } from '../composables/fetchAPI';
 import { Ionicons } from '@expo/vector-icons';
+import { useFonts } from 'expo-font';
+import AppLoading from 'expo-app-loading'; // ใช้สำหรับแสดงหน้ารอโหลดฟอนต์
+
+const NewsDetailSkeleton = () => {
+  const opacity = React.useRef(new Animated.Value(0.3)).current;
+
+  React.useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, { toValue: 0.6, duration: 800, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0.3, duration: 800, useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+
+  return (
+    <Animated.View style={[styles.container, { opacity }]}>
+      {/* Top Row Skeleton (Date & Priority) */}
+      <View style={[styles.row, { marginBottom: 15 }]}>
+        <View style={[styles.skeletonBase, { width: 120, height: 20 }]} />
+        <View style={[styles.skeletonBase, { width: 80, height: 25, borderRadius: 16 }]} />
+      </View>
+      <View style={[styles.divider, { backgroundColor: '#eee' }]} />
+
+      {/* Title Skeleton */}
+      <View style={[styles.skeletonBase, { width: '90%', height: 30, marginVertical: 15 }]} />
+
+      {/* Image Skeleton */}
+      <View style={[styles.skeletonBase, { width: '100%', height: 200, borderRadius: 12, marginBottom: 20 }]} />
+      <View style={[styles.divider, { backgroundColor: '#eee' }]} />
+
+      {/* Content Skeleton */}
+      <View style={[styles.skeletonBase, { width: 60, height: 15, marginTop: 15, marginBottom: 10 }]} />
+      <View style={[styles.skeletonBase, { width: '100%', height: 15, marginBottom: 8 }]} />
+      <View style={[styles.skeletonBase, { width: '100%', height: 15, marginBottom: 8 }]} />
+      <View style={[styles.skeletonBase, { width: '80%', height: 15, marginBottom: 8 }]} />
+      <View style={[styles.skeletonBase, { width: '100%', height: 15, marginBottom: 8 }]} />
+      <View style={[styles.skeletonBase, { width: '60%', height: 15, marginBottom: 8 }]} />
+    </Animated.View>
+  );
+};
 
 function formatThaiDate(dateString: string) {
   if (!dateString) return '';
@@ -39,7 +80,15 @@ export default function NewsDetail() {
   const router = useRouter();
   const [news, setNews] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-//console.log(news);
+  const [fontsLoaded] = useFonts({
+    'Prompt-Regular': require('../assets/fonts/Prompt-Regular.ttf'),
+    'Prompt-Bold': require('../assets/fonts/Prompt-Bold.ttf'),
+  });
+
+  if (!fontsLoaded) {
+    return <AppLoading />; // แสดงหน้ารอโหลดฟอนต์
+  }
+  //console.log(news);
   useEffect(() => {
     if (!slug) return;
     setLoading(true);
@@ -52,17 +101,14 @@ export default function NewsDetail() {
   }, [slug]);
 
   if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
+    return <NewsDetailSkeleton />; // เปลี่ยนตรงนี้
   }
 
-  if (!news) {
+if (!news) {
     return (
       <View style={styles.loadingContainer}>
-        <Text>ไม่พบข้อมูลข่าวนี้</Text>
+        <Ionicons name="alert-circle-outline" size={50} color="#ccc" />
+        <Text style={{ marginTop: 10, color: '#888' }}>ไม่พบข้อมูลข่าวนี้</Text>
       </View>
     );
   }
@@ -76,27 +122,27 @@ export default function NewsDetail() {
 
       {/* Start date and priority */}
       <View style={styles.row}>
-  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-    <Ionicons name="calendar-outline" size={18} color="#888" style={{ marginRight: 6 }} />
-    <Text style={styles.labelRow}>{formatThaiDate(news.startAt)}</Text>
-  </View>
-  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-    {/* <Text style={[styles.labelRow, { marginRight: 2 }]}>ความสำคัญ:</Text> */}
-    <View
-      style={[
-        styles.priorityCapsule,
-        {
-          backgroundColor: getPriorityStyle(news.priority).bg,
-          borderColor: getPriorityStyle(news.priority).color,
-        },
-      ]}
-    >
-      <Text style={{ color: getPriorityStyle(news.priority).color, fontWeight: 'bold' }}>
-        {getPriorityStyle(news.priority).label}
-      </Text>
-    </View>
-  </View>
-</View>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Ionicons name="calendar-outline" size={18} color="#888" style={{ marginRight: 6 }} />
+          <Text style={styles.labelRow}>{formatThaiDate(news.startAt)}</Text>
+        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          {/* <Text style={[styles.labelRow, { marginRight: 2 }]}>ความสำคัญ:</Text> */}
+          <View
+            style={[
+              styles.priorityCapsule,
+              {
+                backgroundColor: getPriorityStyle(news.priority).bg,
+                borderColor: getPriorityStyle(news.priority).color,
+              },
+            ]}
+          >
+            <Text style={{ color: getPriorityStyle(news.priority).color, fontWeight: 'bold' }}>
+              {getPriorityStyle(news.priority).label}
+            </Text>
+          </View>
+        </View>
+      </View>
       <View style={styles.divider} />
 
       {/* Title */}
@@ -159,6 +205,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#222',
     fontWeight: '500',
+    fontFamily: 'Prompt-Regular', // เพิ่มฟอนต์
   },
   divider: {
     height: 1,
@@ -172,6 +219,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     marginTop: 10,
     fontWeight: '500',
+    fontFamily: 'Prompt-Regular', // เพิ่มฟอนต์
   },
   title: {
     fontSize: 20,
@@ -179,6 +227,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: 'left',
     color: '#222',
+    fontFamily: 'Prompt-Bold', // เพิ่มฟอนต์
   },
   image: {
     width: '100%',
@@ -193,11 +242,13 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     marginBottom: 16,
     minHeight: 80,
+    fontFamily: 'Prompt-Regular', // เพิ่มฟอนต์
   },
   link: {
     color: '#007AFF',
     fontSize: 15,
     marginTop: 4,
+    fontFamily: 'Prompt-Regular', // เพิ่มฟอนต์
   },
   priorityCapsule: {
     paddingHorizontal: 14,
@@ -210,4 +261,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginLeft: 8,
   },
+  skeletonBase: {
+    backgroundColor: '#E1E9EE',
+    borderRadius: 4,
+  },
+  // ปรับปรุง container เล็กน้อยเพื่อให้ดูสะอาดขึ้น
+ 
 });

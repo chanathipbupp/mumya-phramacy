@@ -1,6 +1,8 @@
 import React from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import MedicineItem from './MedicineItem';
+import { useFonts } from 'expo-font';
+import AppLoading from 'expo-app-loading'; // ใช้สำหรับแสดงหน้ารอโหลดฟอนต์
 
 interface Medicine {
   id: string;
@@ -34,6 +36,14 @@ interface AdminDispenseListProps {
 }
 
 const AdminDispenseList: React.FC<AdminDispenseListProps> = ({ selectedMedicines, setSelectedMedicines, onQuantityChange, onExpiryDateChange, onFrequencyChange, onDosePerTimeChange, onCautionChange, onTimingChange, onMealRelationChange }) => {
+  const [fontsLoaded] = useFonts({
+    'Prompt-Regular': require('../../assets/fonts/Prompt-Regular.ttf'),
+    'Prompt-Bold': require('../../assets/fonts/Prompt-Bold.ttf'),
+  });
+
+  if (!fontsLoaded) {
+    return <AppLoading />; // แสดงหน้ารอโหลดฟอนต์
+  }
 
   // ฟังก์ชันสำหรับลบยาออกจากรายการ
   const handleDelete = (id: string) => {
@@ -137,6 +147,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 16,
+    fontFamily: 'Prompt-Bold',
   },
   list: {
     width: '70%',

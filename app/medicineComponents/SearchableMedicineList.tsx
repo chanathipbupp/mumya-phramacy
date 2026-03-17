@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import MedicineItem from './MedicineItem';
-
+import { useFonts } from 'expo-font';
+import AppLoading from 'expo-app-loading'; // ใช้สำหรับแสดงหน้ารอโหลดฟอนต์
 interface Medicine {
   id: string;
   productCode: string;
@@ -37,7 +38,14 @@ interface SearchableMedicineListProps {
 
 const SearchableMedicineList: React.FC<SearchableMedicineListProps> = ({ medicines, onSelectMedicine, onAddMedicine, isTab, fetchMedicines }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [fontsLoaded] = useFonts({
+    'Prompt-Regular': require('../../assets/fonts/Prompt-Regular.ttf'),
+    'Prompt-Bold': require('../../assets/fonts/Prompt-Bold.ttf'),
+  });
 
+  if (!fontsLoaded) {
+    return <AppLoading />; // แสดงหน้ารอโหลดฟอนต์
+  }
 
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
@@ -135,6 +143,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     marginBottom: 16,
     backgroundColor: '#fff',
+    fontFamily: 'Prompt-Regular',
+
   },
   medicineItemContainer: {
     position: 'relative', // ใช้ position เพื่อให้ปุ่มลอย
@@ -158,6 +168,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
+    fontFamily: 'Prompt-Bold',
   },
 });
 

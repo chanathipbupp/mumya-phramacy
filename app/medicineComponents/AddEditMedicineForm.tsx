@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { uploadFile } from '../../composables/fetchAPI'; // Import ฟังก์ชัน uploadFile
-
+import { useFonts } from 'expo-font';
+import AppLoading from 'expo-app-loading'; // ใช้สำหรับแสดงหน้ารอโหลดฟอนต์
 export default function AddEditMedicineForm({ onCancel, onSubmit, stage, initialData }) {
   const [formData, setFormData] = useState({
     productCode: '',
@@ -23,7 +24,14 @@ export default function AddEditMedicineForm({ onCancel, onSubmit, stage, initial
     note: '',
     isActive: true,
   });
+  const [fontsLoaded] = useFonts({
+    'Prompt-Regular': require('../../assets/fonts/Prompt-Regular.ttf'),
+    'Prompt-Bold': require('../../assets/fonts/Prompt-Bold.ttf'),
+  });
 
+  if (!fontsLoaded) {
+    return <AppLoading />; // แสดงหน้ารอโหลดฟอนต์
+  }
   // หากเป็นโหมด Edit ให้เติมข้อมูลเริ่มต้น
  useEffect(() => {
   if (stage === 'edit' && initialData) {
@@ -125,7 +133,7 @@ const handleSubmit = async () => {
 
         {/* ฟอร์มกรอกข้อมูล */}
         <View style={styles.formFields}>
-          <Text>ชื่อยา (Medicine Name) <Text style={{ color: 'red' }}>*</Text></Text>
+          <Text style={{ fontFamily: 'Prompt-Regular' }}>ชื่อยา (Medicine Name) <Text style={{ color: 'red' }}>*</Text></Text>
           <TextInput
             style={styles.input}
             value={formData.medicineName}
@@ -135,7 +143,7 @@ const handleSubmit = async () => {
           />
 
 
-          <Text>ชื่อสามัญ (Generic Name)</Text>
+          <Text style={{ fontFamily: 'Prompt-Regular' }}>ชื่อสามัญ (Generic Name)</Text>
           <TextInput
             style={styles.input}
             value={formData.genericName}
@@ -145,7 +153,7 @@ const handleSubmit = async () => {
           />
 
 
-          <Text>ประเภทของยา (Type)<Text style={{ color: 'red' }}>*</Text></Text>
+          <Text style={{ fontFamily: 'Prompt-Regular' }}>ประเภทของยา (Type)<Text style={{ color: 'red' }}>*</Text></Text>
           <TextInput
             style={styles.input}
             value={formData.type}
@@ -153,7 +161,7 @@ const handleSubmit = async () => {
             placeholder="เช่น ยาเม็ด, ยาน้ำ, ยาแผนปัจจุบัน"
             placeholderTextColor="#888"
           />
-          <Text>หมายเหตุ (Note)</Text>
+          <Text style={{ fontFamily: 'Prompt-Regular' }}>หมายเหตุ (Note)</Text>
           <TextInput
             style={styles.input}
             value={formData.note}
@@ -161,7 +169,7 @@ const handleSubmit = async () => {
             placeholder="กรอกหมายเหตุ"
             placeholderTextColor="#888"
           />
-          <Text>ราคา (Price) <Text style={{ color: 'red' }}>*</Text></Text>
+          <Text style={{ fontFamily: 'Prompt-Regular' }}>ราคา (Price) <Text style={{ color: 'red' }}>*</Text></Text>
           <TextInput
             style={styles.input}
             value={formData.price.toString()} // แปลงเป็น string เพื่อแสดงใน TextInput
@@ -197,6 +205,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 16,
+    fontFamily: 'Prompt-Bold',
   },
   input: {
     borderWidth: 1,
@@ -205,6 +214,7 @@ const styles = StyleSheet.create({
     padding: 8,
     marginBottom: 12,
     width: '80%',
+    fontFamily: 'Prompt-Regular',
   },
   toggleButton: {
     backgroundColor: '#E91E63',
@@ -217,6 +227,7 @@ const styles = StyleSheet.create({
   toggleButtonText: {
     color: '#fff',
     fontWeight: 'bold',
+    fontFamily: 'Prompt-Bold',
   },
   submitButton: {
     backgroundColor: '#E91E63',
@@ -229,6 +240,7 @@ const styles = StyleSheet.create({
   submitButtonText: {
     color: '#fff',
     fontWeight: 'bold',
+    fontFamily: 'Prompt-Bold',
   },
   cancelButton: {
     backgroundColor: '#ccc',
@@ -241,6 +253,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: 'bold',
     fontSize: 16,
+    fontFamily: 'Prompt-Bold',
   },
   formRow: {
     flexDirection: 'row',
@@ -272,6 +285,7 @@ const styles = StyleSheet.create({
     color: '#aaa',
     fontSize: 12,
     textAlign: 'left',
+    fontFamily: 'Prompt-Regular',
   },
   uploadContainer: {
     marginTop: 16,
@@ -286,6 +300,7 @@ const styles = StyleSheet.create({
     color: '#555',
     marginTop: 8,
     textAlign: 'center',
+    fontFamily: 'Prompt-Regular',
   },
   formFields: {
     flex: 2,

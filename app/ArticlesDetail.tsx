@@ -3,6 +3,9 @@ import { View, Text, Image, StyleSheet, ScrollView, ActivityIndicator, Touchable
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { getArticleBySlug } from '../composables/fetchAPI';
 import { Ionicons } from '@expo/vector-icons';
+import { useFonts } from 'expo-font';
+import AppLoading from 'expo-app-loading';
+import { LinearGradient } from 'expo-linear-gradient';
 
 function formatThaiDate(dateString: string) {
   if (!dateString) return '';
@@ -24,6 +27,11 @@ export default function ArticlesDetail() {
   const router = useRouter();
   const [article, setArticle] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [fontsLoaded] = useFonts({
+    'Prompt-Regular': require('../assets/fonts/Prompt-Regular.ttf'),
+    'Prompt-Bold': require('../assets/fonts/Prompt-Bold.ttf'),
+  });
+  if (!fontsLoaded) return <AppLoading />;
 
   useEffect(() => {
     if (!slug) return;
@@ -68,19 +76,21 @@ export default function ArticlesDetail() {
       <Text style={styles.title}>{article.title}</Text>
 
       {article.tags && article.tags.length > 0 && (
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+        <View style={styles.tagsContainer}>
           {article.tags.map((tag: string) => (
-            <View
+            // 2. เปลี่ยนจาก <View> เป็น <LinearGradient> ครับ
+            <LinearGradient
               key={tag}
-              style={{
-                borderRadius: 16,
-                paddingHorizontal: 16,
-                paddingVertical: 4,
-                backgroundColor: '#1da1f2',
-              }}
+              // 3. กำหนดสี Gradient ที่ต้องการ (ตัวอย่างนี้ใช้โทนฟ้า-น้ำเงิน)
+              colors={['#9de5ff', '#5ccbffff']}
+              // 4. กำหนดจุดเริ่มและจุดจบของ Gradient (เริ่มบนซ้าย ไปจบ ล่างขวา)
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              // 5. ใช้ Style สำหรับ Tag ที่เตรียมไว้
+              style={styles.tagGradient}
             >
-              <Text style={{ fontSize: 16, color: '#fff' }}>{tag}</Text>
-            </View>
+              <Text style={styles.tagText}>{tag}</Text>
+            </LinearGradient>
           ))}
         </View>
       )}
@@ -104,7 +114,7 @@ export default function ArticlesDetail() {
             : ''}
       </Text>
       <View style={styles.divider} />
-      <Text style={{ color: '#888', fontSize: 14, marginTop: 8 }}>
+      <Text style={{ color: '#888', fontSize: 14, marginTop: 8, fontFamily: 'Prompt-Regular' }}>
         อัปเดตเมื่อ: {formatThaiDate(article.updatedAt)}
       </Text>
 
@@ -133,6 +143,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#222',
     fontWeight: '500',
+    fontFamily: 'Prompt-Regular',
   },
   divider: {
     height: 1,
@@ -146,6 +157,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     marginTop: 10,
     fontWeight: '500',
+    fontFamily: 'Prompt-Regular',
   },
   title: {
     fontSize: 20,
@@ -153,6 +165,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: 'left',
     color: '#222',
+    fontFamily: 'Prompt-Bold',
   },
   image: {
     width: '100%',
@@ -167,5 +180,29 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     marginBottom: 16,
     minHeight: 80,
+    fontFamily: 'Prompt-Regular',
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 20,
+  },
+  tagGradient: {
+    borderRadius: 16, // ขอบมน
+    paddingHorizontal: 16,
+    paddingVertical: 6, // เพิ่ม padding vertical เล็กน้อย
+    // shadow เพื่อให้ Tag ดูลอยขึ้นมา
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3, // shadow สำหรับ Android
+  },
+  tagText: {
+    fontSize: 14, // ปรับขนาดฟอนต์ Tag ลงเล็กน้อยเพื่อให้ดู compact
+    color: '#fff',
+    fontWeight: '600',
+    fontFamily: 'Prompt-Regular',
   },
 });

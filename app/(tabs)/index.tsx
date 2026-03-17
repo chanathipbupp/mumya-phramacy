@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { StyleSheet, View, Text, FlatList, TouchableOpacity, ActivityIndicator, TextInput, ScrollView, Platform } from 'react-native';
+import { Animated, StyleSheet, View, Text, FlatList, TouchableOpacity, ActivityIndicator, TextInput, ScrollView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Item from '../../components/item';
@@ -8,16 +8,45 @@ import { getNews } from '../../composables/fetchAPI';
 import { useFocusEffect } from '@react-navigation/native';
 import { useUser } from '../../components/UserProvider';
 import AnnounceIcon from '../components/AnnounuceIcon';
+import RewardTabIcon from '../components/RewardTabIcon'; // นำเข้า RewardTabIcon
+import CogIcon from '../components/CogIcon';
+import TicketIcon from '../components/TicketIcon';
+import SystemIcon from '../components/SystemIcon';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFonts } from 'expo-font';
 import AppLoading from 'expo-app-loading'; // ใช้สำหรับแสดงหน้ารอโหลดฟอนต์
 
+const SkeletonItem = () => {
+  const opacity = React.useRef(new Animated.Value(0.3)).current;
+
+  React.useEffect(() => {
+    // ทำ Animation ให้มันกระพริบ (Pulse Effect)
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, { toValue: 0.7, duration: 800, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0.3, duration: 800, useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+
+  return (
+    <Animated.View style={[styles.itemContainerSkeleton, { opacity }]}>
+      <View style={styles.imageSkeleton} />
+      <View style={styles.contentSkeleton}>
+        <View style={[styles.lineSkeleton, { width: '80%', height: 20 }]} />
+        <View style={[styles.lineSkeleton, { width: '90%', marginTop: 10 }]} />
+        <View style={[styles.lineSkeleton, { width: '40%', marginTop: 10 }]} />
+      </View>
+    </Animated.View>
+  );
+};
+
 const CATEGORIES = [
-  { label: 'All', value: '', name: 'ทั้งหมด' },
-  { label: 'Announcement', value: 'announcement', name: 'ประกาศ' },
-  { label: 'Promotion', value: 'promo', name: 'โปรโมชั่น' },
-  { label: 'Maintenance', value: 'maintenance', name: 'การบำรุงรักษา' },
-  { label: 'System', value: 'system', name: 'ระบบ' },
+  { label: 'All', value: '', name: 'ทั้งหมด', icon: null },
+  { label: 'Announcement', value: 'announcement', name: 'ประกาศ', icon: <AnnounceIcon size={28} /> },
+  { label: 'Promotion', value: 'promo', name: 'โปรโมชั่น', icon: <TicketIcon size={28} /> },
+  { label: 'Maintenance', value: 'maintenance', name: 'การบำรุงรักษา', icon: <CogIcon size={28} /> },
+  { label: 'System', value: 'system', name: 'ระบบ', icon: <SystemIcon size={28} /> },
 ];
 
 export default function HomeScreen() {
@@ -154,40 +183,62 @@ export default function HomeScreen() {
             contentContainerStyle={styles.chipRow}
           >
             {CATEGORIES.map((cat) => {
-              const isActive = selectedCategory === cat.value;
-              return (
-                <TouchableOpacity
-                  key={cat.value}
-                  style={[
-                    styles.categoryTile,
-                    isActive && styles.categoryTileActive,
-                  ]}
-                  onPress={() => {
-                    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
-                    setSelectedCategory(cat.value);
-                  }}
-                >
-                  <AnnounceIcon />
+  const isActive = selectedCategory === cat.value;
+  
+  // สร้าง Content ด้านในเพื่อนำไปใช้ซ้ำ
+  const tileContent = (
+    <>
+      {cat.icon && React.cloneElement(cat.icon as React.ReactElement, {
+        color: isActive ? '#ffffff' : '#0097a7'
+      })}
+      <Text
+        style={[
+          styles.tileText,
+          isActive && styles.tileTextActive,
+        ]}
+        numberOfLines={1}
+      >
+        {cat.name}
+      </Text>
+    </>
+  );
 
-                  <Text
-                    style={[
-                      styles.tileText,
-                      isActive && styles.tileTextActive,
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {cat.name}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+  return (
+    <TouchableOpacity
+      key={cat.value}
+      style={[
+        styles.categoryTile,
+        isActive && { elevation: 8, shadowColor: '#00adef' } // เพิ่มเงาให้ตัวปุ่มหลัก
+      ]}
+      onPress={() => {
+        flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+        setSelectedCategory(cat.value);
+      }}
+    >
+      {isActive ? (
+        <LinearGradient
+          colors={['#9de5ff', '#00adef'] } // ไล่เฉดสีฟ้าสดไปฟ้าเข้ม
+          style={styles.gradientTile}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
+          {tileContent}
+        </LinearGradient>
+      ) : (
+        tileContent
+      )}
+    </TouchableOpacity>
+  );
+})}
           </ScrollView>
         </View>
 
         {/* News List */}
         {loading ? (
-          <View style={styles.centerLoader}>
-            <ActivityIndicator size="large" color="#0097a7" />
+          <View style={styles.listContent}>
+            {[1, 2, 3, 4, 5].map((key) => (
+              <SkeletonItem key={key} />
+            ))}
           </View>
         ) : (
           <FlatList
@@ -326,7 +377,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   itemWrapper: {
-    marginBottom: 16, // ระยะห่างระหว่างการ์ดข่าว
+    marginBottom: 12, // ระยะห่างระหว่างการ์ดข่าว
   },
   centerLoader: {
     flex: 1,
@@ -348,23 +399,24 @@ const styles = StyleSheet.create({
     marginVertical: 15,
   },
   chipRow: {
-    paddingHorizontal: 15,
+    paddingHorizontal: 6,
     paddingBottom: 10, // เผื่อพื้นที่ให้เงาด้านล่าง
   },
   categoryTile: {
-    width: 90,
-    height: 90,
-    backgroundColor: '#eef9ff', // สีฟ้าอ่อนมากแบบในรูป
+    width: 100,
+    height: 100,
+    backgroundColor: '#ffffff', // สีฟ้าอ่อนมากแบบในรูป
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
     borderWidth: 1,
     borderColor: 'transparent',
+    overflow: 'hidden', // สำคัญ: เพื่อให้ Gradient ไม่ล้นขอบโค้ง
     // เงาบางๆ สำหรับใบที่ไม่ได้เลือก
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.2,
     shadowRadius: 3,
     elevation: 2,
   },
@@ -377,6 +429,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.5,
     shadowRadius: 8,
     elevation: 8,
+  },
+  gradientTile: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 18,
   },
   tileText: {
     fontSize: 13,
@@ -420,5 +479,29 @@ const styles = StyleSheet.create({
     top: '30%',
     right: -150,
     opacity: 0.02, // ให้เห็นแค่ลางๆ เป็น Layer
+  },
+  itemContainerSkeleton: {
+    flexDirection: 'row',
+    padding: 12,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    marginBottom: 16,
+    marginHorizontal: 20, // ให้เท่ากับ padding ของรายการจริง
+  },
+  imageSkeleton: {
+    width: 120,
+    height: 120,
+    backgroundColor: '#E1E9EE',
+    borderRadius: 24,
+  },
+  contentSkeleton: {
+    flex: 1,
+    marginLeft: 16,
+    justifyContent: 'center',
+  },
+  lineSkeleton: {
+    height: 14,
+    backgroundColor: '#E1E9EE',
+    borderRadius: 4,
   },
 });

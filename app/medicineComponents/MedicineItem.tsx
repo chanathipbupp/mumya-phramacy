@@ -2,7 +2,8 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { addMonths, addYears, format } from 'date-fns';
 import React, { useEffect, useState } from 'react';
 import { CheckBox, Image, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-
+import { useFonts } from 'expo-font';
+import AppLoading from 'expo-app-loading'; // ใช้สำหรับแสดงหน้ารอโหลดฟอนต์
 interface MedicineItemProps {
   name: string;
   dosage: string;
@@ -48,7 +49,14 @@ const MedicineItem: React.FC<MedicineItemProps> = ({
   const [isConfirmModalVisible, setConfirmModalVisible] = useState(false);
   const [editableCaution, setEditableCaution] = useState(note);
   const [editableQuantity, setEditableQuantity] = useState(quantity);
+  const [fontsLoaded] = useFonts({
+    'Prompt-Regular': require('../../assets/fonts/Prompt-Regular.ttf'),
+    'Prompt-Bold': require('../../assets/fonts/Prompt-Bold.ttf'),
+  });
 
+  if (!fontsLoaded) {
+    return <AppLoading />; // แสดงหน้ารอโหลดฟอนต์
+  }
   useEffect(() => {
     setLocalQuantity(quantity); // อัปเดต localQuantity เมื่อ quantity เปลี่ยน
   }, [quantity]);
@@ -242,7 +250,7 @@ const MedicineItem: React.FC<MedicineItemProps> = ({
             {/* รายละเอียดยา */}
             <View style={styles.detailsContainer}>
               <View style={styles.row}>
-                <Text>รับประทานครั้งละ:</Text>
+                <Text style={{ fontFamily: 'Prompt-Regular' }}>รับประทานครั้งละ:</Text>
                 <TextInput
                   style={styles.input}
                   value={editableDosage}
@@ -251,9 +259,9 @@ const MedicineItem: React.FC<MedicineItemProps> = ({
                   keyboardType="numeric"
                   placeholder="0"
                 />
-                <Text>เม็ด</Text>
+                <Text style={{ fontFamily: 'Prompt-Regular' }}>เม็ด</Text>
                 <View style={{ marginLeft: 16, flexDirection: 'row', alignItems: 'center' }}>
-                  <Text>วันละ:</Text>
+                  <Text style={{ fontFamily: 'Prompt-Regular' }}>วันละ:</Text>
                   <TextInput
                     style={styles.input}
                     value={editableTimesPerDay}
@@ -262,7 +270,7 @@ const MedicineItem: React.FC<MedicineItemProps> = ({
                     keyboardType="numeric"
                     placeholder="0"
                   />
-                  <Text>ครั้ง</Text>
+                  <Text style={{ fontFamily: 'Prompt-Regular' }}>ครั้ง</Text>
                 </View>
 
               </View>
@@ -516,11 +524,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     textAlign: 'left',
     color: '#333',
+    fontFamily: 'Prompt-Bold',
   },
   medicineInfo: {
     fontSize: 14,
     marginBottom: 8,
     color: '#555',
+    fontFamily: 'Prompt-Regular',
   },
   timeOfDayContainer: {
     flexDirection: 'row',
@@ -535,6 +545,7 @@ const styles = StyleSheet.create({
   timeOfDayText: {
     fontSize: 14,
     marginLeft: 4,
+    fontFamily: 'Prompt-Regular',
   },
   mealContainer: {
     flexDirection: 'row',
@@ -545,17 +556,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginLeft: 4,
     marginRight: 16,
+    fontFamily: 'Prompt-Regular',
   },
   noteText: {
     fontSize: 14,
     fontStyle: 'italic',
-
+    fontFamily: 'Prompt-Regular',
     color: '#333',
   },
   expiryText: {
     fontSize: 14,
     fontWeight: 'bold',
     color: '#FF0000',
+    fontFamily: 'Prompt-Bold',
   },
   inactiveText: {
     color: '#B0B0B0', // สีเทา
@@ -564,6 +577,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#555',
     marginBottom: 8,
+    fontFamily: 'Prompt-Regular',
   },
   dashboardContent: {
     flexDirection: 'row',
@@ -593,6 +607,8 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 14,
+    fontFamily: 'Prompt-Bold',
+
   },
   row: {
     flexDirection: 'row',
@@ -622,6 +638,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     color: '#333',
+    fontFamily: 'Prompt-Bold',
   },
   inputColumn: {
     flexDirection: 'column', // จัดให้อยู่ในแนวตั้ง
@@ -638,6 +655,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     height: 60, // กำหนดความสูงให้รองรับ 3 บรรทัด
     width: '90%',
+    fontFamily: 'Prompt-Regular',
   },
   expiryDateRow: {
     flexDirection: 'row',
@@ -667,6 +685,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     color: '#333',
+    fontFamily: 'Prompt-Bold',
   },
 
   quantityButton: {
@@ -681,6 +700,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold', // ตัวหนา
     fontSize: 16, // ขนาดตัวอักษร
     textAlign: 'center', // จัดข้อความให้อยู่ตรงกลาง
+      fontFamily: 'Prompt-Bold',
   },
   quantityText: {
     fontSize: 18, // ขนาดตัวอักษร
@@ -688,6 +708,7 @@ const styles = StyleSheet.create({
     color: '#333', // สีตัวอักษร
     marginHorizontal: 8, // ระยะห่างระหว่างตัวเลขกับปุ่ม
     textAlign: 'center', // จัดข้อความให้อยู่ตรงกลาง
+      fontFamily: 'Prompt-Bold',
   },
   modalOverlay: {
     flex: 1,
@@ -726,6 +747,7 @@ const styles = StyleSheet.create({
   modalButtonText: {
     color: '#fff',
     fontWeight: 'bold',
+    fontFamily: 'Prompt-Bold',
   },
 });
 

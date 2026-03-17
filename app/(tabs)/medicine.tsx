@@ -1,14 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useUser } from '../../components/UserProvider';
-import { addMedicine,getOrderHistoryMe, createOrder, getMedicines, getOrderHistory, getUserList, updateMedicine, getOrderDetail } from '../../composables/fetchAPI';
+import { addMedicine, getOrderHistoryMe, createOrder, getMedicines, getOrderHistory, getUserList, updateMedicine, getOrderDetail } from '../../composables/fetchAPI';
 import AddEditMedicineForm from '../medicineComponents/AddEditMedicineForm';
 import AdminDispenseList from '../medicineComponents/AdminDispenseList';
 import MedicineItem from '../medicineComponents/MedicineItem';
 import OrderItem from '../medicineComponents/OrderItem';
 import SearchableMedicineList from '../medicineComponents/SearchableMedicineList';
 import { LinearGradient } from 'expo-linear-gradient';
-
+import { useFonts } from 'expo-font';
+import AppLoading from 'expo-app-loading'; // ใช้สำหรับแสดงหน้ารอโหลดฟอนต์
 interface Medicine {
   id: string;
   medicineName: string;
@@ -26,7 +27,19 @@ interface Medicine {
   type: string;
   quantity: number;
 }
-
+const OrderSkeleton = () => (
+  <View style={[styles.skeletonContainer, { opacity: 0.6 }]}>
+    {/* แถบวันที่ */}
+    <View style={styles.skeletonDate} />
+    {/* แถบรายละเอียดสถานะ */}
+    <View style={styles.skeletonDetail} />
+    {/* รายการยา (จำลอง 2 บรรทัด) */}
+    <View style={styles.skeletonMedicine} />
+    <View style={[styles.skeletonMedicine, { width: '60%' }]} />
+    {/* ชื่อเภสัชกร */}
+    <View style={styles.skeletonPharmacist} />
+  </View>
+);
 export default function MedicineScreen() {
   const [adminMode, setAdminMode] = useState(false);
   const [adminTab, setAdminTab] = useState<'create' | 'dispense'>('create');
@@ -48,6 +61,14 @@ export default function MedicineScreen() {
   const [currentOrderPage, setCurrentOrderPage] = useState(1); // หน้าปัจจุบัน
   const [hasMoreOrders, setHasMoreOrders] = useState(true); // ตรวจสอบว่ามีหน้าเพิ่มเติมหรือไม่
   const scrollViewRef = useRef<ScrollView>(null); // สร้าง ref สำหรับ ScrollView
+  const [fontsLoaded] = useFonts({
+    'Prompt-Regular': require('../../assets/fonts/Prompt-Regular.ttf'),
+    'Prompt-Bold': require('../../assets/fonts/Prompt-Bold.ttf'),
+  });
+
+  if (!fontsLoaded) {
+    return <AppLoading />; // แสดงหน้ารอโหลดฟอนต์
+  }
   useEffect(() => {
     if (phoneNumber === '' || phoneNumber === '0') {
       setUserList([]); // ล้าง userList เมื่อ phoneNumber เป็นค่าว่างหรือ 0
@@ -108,43 +129,43 @@ export default function MedicineScreen() {
     }
   };
 
-const fetchMedicines = async (query = '') => {
-  try {
-    setLoading(true);
-    const medicinesData = await getMedicines({ q: query, isActive: true, page: 1, limit: 10 });
-    setMedicines(medicinesData.items);
-  } catch (error) {
-    console.error('Error fetching medicines:', error);
-  } finally {
-    setLoading(false);
-  }
-};
-
-const fetchOrders = async (page = 1) => {
-  try {
-    setLoading(true);
-    let ordersData;
-
-    if (user?.user?.role === 'admin') {
-      // ใช้ endpoint สำหรับ admin
-      ordersData = await getOrderHistory({ page: page.toString(), limit: '10' });
-    } else {
-      // ใช้ endpoint สำหรับ user
-      ordersData = await getOrderHistoryMe({ page: page.toString(), limit: '10' });
+  const fetchMedicines = async (query = '') => {
+    try {
+      setLoading(true);
+      const medicinesData = await getMedicines({ q: query, isActive: true, page: 1, limit: 10 });
+      setMedicines(medicinesData.items);
+    } catch (error) {
+      console.error('Error fetching medicines:', error);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    if (ordersData.items.length > 0) {
-      setOrders((prevOrders) => [...prevOrders, ...ordersData.items]); // รวมรายการใหม่กับรายการเดิม
-      setCurrentOrderPage(page); // อัปเดตหน้าปัจจุบัน
-    } else {
-      setHasMoreOrders(false); // ไม่มีหน้าเพิ่มเติม
+  const fetchOrders = async (page = 1) => {
+    try {
+      setLoading(true);
+      let ordersData;
+
+      if (user?.user?.role === 'admin') {
+        // ใช้ endpoint สำหรับ admin
+        ordersData = await getOrderHistory({ page: page.toString(), limit: '10' });
+      } else {
+        // ใช้ endpoint สำหรับ user
+        ordersData = await getOrderHistoryMe({ page: page.toString(), limit: '10' });
+      }
+
+      if (ordersData.items.length > 0) {
+        setOrders((prevOrders) => [...prevOrders, ...ordersData.items]); // รวมรายการใหม่กับรายการเดิม
+        setCurrentOrderPage(page); // อัปเดตหน้าปัจจุบัน
+      } else {
+        setHasMoreOrders(false); // ไม่มีหน้าเพิ่มเติม
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error('Error fetching orders:', error);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
   // ฟังก์ชันสำหรับโหลดหน้าเพิ่มเติม
   const loadMoreOrders = () => {
     if (hasMoreOrders && !loading) {
@@ -171,9 +192,11 @@ const fetchOrders = async (page = 1) => {
 
   useEffect(() => {
     fetchMedicines();
-    fetchOrders();
-  }, []);
-
+    if (user?.user) { // ตรวจสอบว่ามีข้อมูล user ก่อนค่อยดึง Order
+      setOrders([]); // ล้างของเก่าก่อนโหลดใหม่ถ้าต้องการ
+      fetchOrders();
+    }
+  }, [user]); // เฝ้าดู user object
 
   // ฟังก์ชันสำหรับจัดการการกดปุ่ม (+ เพิ่ม)
   const handleAddMedicine = () => {
@@ -425,11 +448,11 @@ const fetchOrders = async (page = 1) => {
       />
       <View style={styles.container}>
         <LinearGradient
-        colors={['#eef9ff', '#f0faff', '#c1ced2']}
-        style={StyleSheet.absoluteFill}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      />
+          colors={['#eef9ff', '#f0faff', '#c1ced2']}
+          style={StyleSheet.absoluteFill}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        />
         {/* Header with AdminMode button */}
         <View style={styles.headerRow}>
           {user?.user?.role === 'admin' && (
@@ -460,8 +483,10 @@ const fetchOrders = async (page = 1) => {
               ))}
             </View> */}
 
-            {orders.length === 0 ? (
-              <Text style={{ textAlign: 'center' }}>ท่านยังไม่มีรายการสั่งซื้อ</Text>
+            {orders.length === 0 && !loading ? (
+              <Text style={{ textAlign: 'center', fontFamily: 'Prompt-Regular', marginTop: 20 }}>
+                ท่านยังไม่มีรายการสั่งซื้อ
+              </Text>
             ) : (
               <ScrollView
                 contentContainerStyle={styles.listContainer}
@@ -488,9 +513,14 @@ const fetchOrders = async (page = 1) => {
                       />
                     </TouchableOpacity>
                   ))}
-                {loading && <Text>กำลังโหลด...</Text>}
-                {!hasMoreOrders &&
-                  <Text>ไม่มีคำสั่งซื้อเพิ่มเติม</Text>
+                {loading && (
+                  <View>
+                    <OrderSkeleton />
+                    <OrderSkeleton />
+                    <OrderSkeleton />
+                  </View>
+                )}                {!hasMoreOrders &&
+                  <Text style={{ textAlign: 'center', fontFamily: 'Prompt-Regular' }}>ไม่มีคำสั่งซื้อเพิ่มเติม</Text>
                 }
               </ScrollView>
             )}
@@ -555,7 +585,7 @@ const fetchOrders = async (page = 1) => {
                     </View>
                     <View style={styles.oneThird}>
 
-                      <SearchableMedicineList medicines={medicines}   fetchMedicines={fetchMedicines} onSelectMedicine={handleMedicineSelect} />
+                      <SearchableMedicineList medicines={medicines} fetchMedicines={fetchMedicines} onSelectMedicine={handleMedicineSelect} />
                     </View>
 
                   </View>
@@ -575,7 +605,7 @@ const fetchOrders = async (page = 1) => {
                   ) : (
                     <>
                       <Text style={styles.title}>ยังไม่มีรายการ</Text>
-                      <Text>สามารถกดปุ่ม "+เพิ่ม" เพื่อเพิ่มยาได้</Text>
+                      <Text style={{ fontFamily: 'Prompt-Regular' }}>สามารถกดปุ่ม "+เพิ่ม" เพื่อเพิ่มยาได้</Text>
                     </>
                   )}
                 </View>
@@ -590,7 +620,7 @@ const fetchOrders = async (page = 1) => {
                       <SearchableMedicineList
                         medicines={medicines}
                         onSelectMedicine={setSelectedMedicine}
-                        fetchMedicines={fetchMedicines} 
+                        fetchMedicines={fetchMedicines}
                         onAddMedicine={handleAddMedicineToDispenseList} // ส่งฟังก์ชันนี้ไป
                         isTab={adminTab}
                       />
@@ -619,7 +649,7 @@ const fetchOrders = async (page = 1) => {
             )}
           </View>
         )}
-        {adminTab === 'dispense' && (
+        {adminTab === 'dispense' && adminMode && (
           <View style={styles.adminView}>
             <View style={[styles.listContainer, { backgroundColor: '#fff', paddingHorizontal: 8, paddingVertical: 8, borderRadius: 16, marginBottom: 16, marginTop: 16 }]}>
               <View>
@@ -773,6 +803,7 @@ const styles = StyleSheet.create({
   adminBtnText: {
     color: '#fff',
     fontWeight: 'bold',
+    fontFamily: 'Prompt-Bold',
   },
   tabRow: {
     flexDirection: 'row',
@@ -795,9 +826,11 @@ const styles = StyleSheet.create({
   tabText: {
     color: '#333',
     fontWeight: 'bold',
+    fontFamily: 'Prompt-Bold',
   },
   tabTextActive: {
     color: '#fff',
+    fontFamily: 'Prompt-Regular',
   },
   adminView: {
     flexDirection: 'row',
@@ -819,6 +852,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 16,
+    fontFamily: 'Prompt-Bold',
   },
   dispenseList: {
     flex: 1,
@@ -844,10 +878,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 16,
+    fontFamily: 'Prompt-Bold',
   },
   modalText: {
     fontSize: 16,
     marginBottom: 8,
+    fontFamily: 'Prompt-Regular',
   },
   medicineList: {
     width: '100%',
@@ -878,6 +914,7 @@ const styles = StyleSheet.create({
   addButtonText: {
     color: '#fff',
     fontWeight: 'bold',
+    fontFamily: 'Prompt-Bold',
   },
   cancelButton: {
     marginTop: 16,
@@ -891,6 +928,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: 'bold',
     fontSize: 16,
+    fontFamily: 'Prompt-Bold',
   },
   closeButton: {
     backgroundColor: '#E91E63',
@@ -904,6 +942,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: 'bold',
     fontSize: 16,
+    fontFamily: 'Prompt-Bold',
   },
   input: {
     borderWidth: 1,
@@ -911,6 +950,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 8,
     marginBottom: 12,
+    fontFamily: 'Prompt-Regular',
   },
   toggleButton: {
     backgroundColor: '#E91E63',
@@ -923,6 +963,7 @@ const styles = StyleSheet.create({
   toggleButtonText: {
     color: '#fff',
     fontWeight: 'bold',
+    fontFamily: 'Prompt-Bold',
   },
 
 
@@ -947,6 +988,7 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     marginBottom: 4,
+    fontFamily: 'Prompt-Regular',
   },
   dashedBox: {
     borderWidth: 2,
@@ -965,6 +1007,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold', // ตัวหนา
     fontSize: 16, // ขนาดตัวอักษร
     textAlign: 'center', // จัดข้อความให้อยู่ตรงกลาง
+    fontFamily: 'Prompt-Bold',
   },
   rightDispenseSection: {
     backgroundColor: '#fff',
@@ -998,13 +1041,14 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 16,
     fontWeight: 'bold',
+    fontFamily: 'Prompt-Bold',
   },
   userPhone: {
     fontSize: 14,
     color: '#555',
+    fontFamily: 'Prompt-Regular',
   },
   selectedUserContainer: {
-
     padding: 8,
     backgroundColor: '#f9f9f9',
     borderRadius: 8,
@@ -1040,12 +1084,14 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: 'bold',
     fontSize: 16,
+    fontFamily: 'Prompt-Bold',
   },
 
   submitButtonText: {
     color: '#FFFFFF',
     fontWeight: 'bold',
     fontSize: 16,
+    fontFamily: 'Prompt-Bold',
   },
   nextPageButton: {
     backgroundColor: '#E91E63',
@@ -1060,6 +1106,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: 'bold',
     fontSize: 16,
+    fontFamily: 'Prompt-Bold',
   },
   paginationContainer: {
     flexDirection: 'row',
@@ -1078,11 +1125,13 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: 'bold',
     fontSize: 16,
+    fontFamily: 'Prompt-Bold',
   },
   paginationText: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
+    fontFamily: 'Prompt-Bold',
   },
   disabledButton: {
     backgroundColor: '#ccc',
@@ -1107,5 +1156,44 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 24,
     fontWeight: 'bold',
+    fontFamily: 'Prompt-Bold',
+  },
+  skeletonContainer: {
+    backgroundColor: '#fff',
+    padding: 16,
+    marginVertical: 8,
+    marginHorizontal: 16,
+    borderRadius: 16,
+    elevation: 2,
+  },
+  skeletonDate: {
+    width: '70%',
+    height: 18,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 4,
+    marginBottom: 10,
+  },
+  skeletonDetail: {
+    width: '40%',
+    height: 12,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 4,
+    marginBottom: 15,
+  },
+  skeletonMedicine: {
+    width: '85%',
+    height: 14,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 4,
+    marginBottom: 8,
+    marginLeft: 10,
+  },
+  skeletonPharmacist: {
+    width: '30%',
+    height: 10,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 4,
+    alignSelf: 'flex-end',
+    marginTop: 10,
   },
 });
