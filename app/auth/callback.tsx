@@ -18,7 +18,7 @@ const exchangeCodeForAccessToken = async (code: string) => {
       body: new URLSearchParams({
         grant_type: "authorization_code",
         code: code,
-        redirect_uri: "http://localhost:8081/auth/callback",
+        redirect_uri: "https://mumyapharmacy.app/auth/callback",
         client_id: "2008830229",
         client_secret: "2f690ccb3165a8b837d355c52b208f3d",
       }).toString(),
